@@ -22,20 +22,13 @@ public class UserRestController {
             Util util = Util.getInstance();
             System.out.println(util.hashCode());
         };
-        try {
-            Thread.sleep(2000);
-            new Thread(rn).start();
-        }catch (Exception e){}
-
+        new Thread(rn).start();
 
         Runnable rn2 = () -> {
             Util util = Util.getInstance();
             System.out.println(util.hashCode());
         };
-        try {
-            Thread.sleep(5000);
-            new Thread(rn2).start();
-        }catch (Exception e){}
+        new Thread(rn2).start();
 
         service1.call1();
     }

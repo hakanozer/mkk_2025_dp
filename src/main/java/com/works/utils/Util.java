@@ -8,11 +8,16 @@ public class Util {
         super();
     }
 
-    public static Util getInstance(){
-        if(util == null){
-            util = new Util();
-        }
+    public static synchronized Util getInstance(){
+        try {
+            Thread.sleep(1000);
+            if(util == null){
+                util = new Util();
+            }
+        }catch (Exception e){}
+
         return util;
     }
+
 
 }
