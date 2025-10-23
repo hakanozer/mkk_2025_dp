@@ -1,5 +1,6 @@
 package com.works.configs;
 
+import com.works.decorator.Pizza;
 import com.works.utils.Action;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,5 @@ public class AppBeans {
         String sessionId = request.getSession().getId();
         return sessionId;
     }
-
 
 }
