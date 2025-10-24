@@ -21,6 +21,7 @@ public class PizzaService {
     public void orderPizza(List<String> types){
         System.out.println(pizzaDecoratorMap);
 
+
         for (String type : types) {
             PizzaDecorator pizzaDecorator = pizzaDecoratorMap.get(type);
             pizza = applicationContext.getBean(pizzaDecorator.getClass(), pizza);
