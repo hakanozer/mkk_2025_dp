@@ -1,5 +1,7 @@
 package com.works.prototype;
 
+import java.util.*;
+
 public class Address implements IAddress{
 
     private String city;
@@ -9,6 +11,10 @@ public class Address implements IAddress{
 
     @Override
     public Address addressClone() {
+        Map<String, String> hm1 = new HashMap<>();
+        Map<String, String> hm = new LinkedHashMap<>();
+        Set<String> sets = new HashSet<>();
+        Set<String> linkedSet = new LinkedHashSet<>();
         try {
             return (Address) super.clone();
         } catch (CloneNotSupportedException e) {

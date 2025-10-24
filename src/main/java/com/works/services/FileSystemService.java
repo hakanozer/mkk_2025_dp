@@ -3,6 +3,7 @@ package com.works.services;
 import com.works.composite.File;
 import com.works.composite.FileSystemComponent;
 import com.works.composite.Folder;
+import com.works.entties.Customer;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,6 +33,34 @@ public class FileSystemService {
         root.add(f1);
         root.add(f2);
         root.add(folder1);
+
+        Customer c1 = new Customer();
+        c1.setId(10);
+        c1.setName("Ali");
+
+        Customer c2 = new Customer();
+        c2.setId(10);
+        c2.setName("Ali");
+
+        System.out.println(c1.hashCode());
+        System.out.println(c2.hashCode());
+
+        if (c1 == c2) {
+            System.out.println("true");
+        }else {
+            System.out.println("false");
+        }
+
+        System.out.println("==================");
+        String a = "Enes";
+        String b = "Enes";
+        System.out.println(a.hashCode());
+        System.out.println(b.hashCode());
+        if (a == b) {
+            System.out.println("true");
+        }else {
+            System.out.println("false");
+        }
 
         return root;
     }
