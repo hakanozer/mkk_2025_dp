@@ -1,0 +1,762 @@
+ <!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factory Method Pattern - Spring Boot 3.5 REST API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .subsection-title {
+            color: #4a5568;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .subsection-title::before {
+            content: "▶";
+            color: #667eea;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #2d3748;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .annotation { color: #8be9fd; }
+        .class-name { color: #50fa7b; }
+        .method { color: #ffb86c; }
+
+        .benefit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .benefit-item {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(5px);
+        }
+
+        .benefit-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .architecture-diagram {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-family: monospace;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border: 1px solid #667eea30;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fbbf2410, #f6932510);
+            border: 1px solid #fbbf2430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #fbbf24;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .tab-container {
+            margin: 1.5rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+            padding: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .pros-box {
+            background: linear-gradient(135deg, #10b98110, #059c6910);
+            border: 1px solid #10b98130;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #10b981;
+        }
+
+        .cons-box {
+            background: linear-gradient(135deg, #ef444410, #dc262610);
+            border: 1px solid #ef444430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .benefit-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .pros-cons-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .pattern-flow {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+
+        .flow-arrow {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Factory Method Design Pattern</h1>
+            <p>Spring Boot 3.5 REST API Implementation Guide</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Pattern Tanımı ve Amacı</h2>
+            <p>Factory Method, bir nesnenin oluşturulmasını bir interface üzerinden yöneten, creational design pattern'dır. Bu pattern, hangi <b>concrete class'ın</b> instantiate edileceği kararını <b>subclass'lara</b> bırakarak, kodun <b>"new"</b> keyword'ü ile doğrudan bir nesne oluşturmasını engeller. Böylece, istemci kodun (client code) hangi concrete class'ı kullandığını bilmesine gerek kalmaz.</p>
+            
+            <div class="highlight-box">
+                <strong>Temel Prensip:</strong> "Bir nesne oluşturmak için bir interface tanımla, ancak bu interface'in hangi concrete class'ı oluşturacağına subclass'lar karar versin."
+            </div>
+
+            <h3 class="subsection-title">GoF Tanımı</h3>
+            <p><em>"Bir nesne oluşturmak için bir interface (method) tanımla, ancak concrete class'ın instantiate edilmesi kararını subclass'lara bırak. Factory Method, bir sınıfın (class) instantiation'ı subclass'lara delege etmesini sağlar."</em></p>
+
+            <div class="pattern-flow">
+                <div class="flow-step">Creator (Abstract Class)</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Factory Method</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Concrete Creator</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Product Interface</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Concrete Product</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Neden-Sonuç İlişkisi</h2>
+            
+            <h3 class="subsection-title">Problem: Tightly Coupled Object Creation</h3>
+            <div class="warning-box">
+                <strong>Sorun:</strong> <code>new</code> keyword'ünün doğrudan kullanımı ve sıkı bağımlılıklar:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Rigid Codebase:</strong> Yeni bir product tipi eklemek, client code'da değişiklik yapılmasını gerektirir.</li>
+                    <li><strong>Violation of Open/Closed Principle:</strong> Yeni özellikler eklemek için mevcut kodu değiştirmek zorunluluğu.</li>
+                    <li><strong>Scattered Creation Logic:</strong> Nesne oluşturma mantığı uygulamanın farklı yerlerine yayılmıştır.</li>
+                    <li><strong>Testing Difficulty:</strong> Concrete dependency'ler nedeniyle unit test yazmak karmaşıklaşır.</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+<pre>
+<span class="comment">// Anti-pattern: Tight Coupling</span>
+<span class="keyword">public class</span> <span class="class-name">PaymentService</span> {
+    <span class="keyword">public void</span> <span class="method">processPayment</span>(<span class="class-name">String</span> type) {
+        <span class="keyword">PaymentGateway</span> gateway;
+        <span class="keyword">if</span> (<span class="string">"creditCard"</span>.equals(type)) {
+            gateway = <span class="keyword">new</span> <span class="class-name">CreditCardGateway</span>(); <span class="comment">// Tight coupling!</span>
+        } <span class="keyword">else if</span> (<span class="string">"paypal"</span>.equals(type)) {
+            gateway = <span class="keyword">new</span> <span class="class-name">PayPalGateway</span>();
+        } <span class="keyword">else</span> {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Invalid gateway type"</span>);
+        }
+        gateway.<span class="method">executeTransaction</span>();
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Çözüm: Factory Method ile Flexible Creation</h3>
+            <div class="highlight-box">
+                <strong>Sonuç:</strong> Factory Method kullanımı ile:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Loose Coupling:</strong> Client code, concrete product'ı bilmek zorunda kalmaz.</li>
+                    <li><strong>Open/Closed Principle:</strong> Yeni bir product (örn. BitcoinGateway) eklemek, mevcut kodu değiştirmeden sadece yeni bir Concrete Factory sınıfı oluşturmayı gerektirir.</li>
+                    <li><strong>Centralized Logic:</strong> Nesne oluşturma mantığı tek bir yerde toplanır.</li>
+                    <li><strong>Enhanced Testability:</strong> Factory interface'i mock'lanarak test senaryoları kolayca oluşturulabilir.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Spring Boot 3.5 Implementation</h2>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('product')">Product & Factory Interfaces</button>
+                    <button class="tab-button" onclick="showTab('concrete')">Concrete Implementations</button>
+                    <button class="tab-button" onclick="showTab('service')">Service Layer</button>
+                    <button class="tab-button" onclick="showTab('controller')">REST Controller</button>
+                </div>
+
+                <div id="product" class="tab-content active">
+                    <h4>Product ve Factory Interfaces</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 1: Product Interface</span>
+<span class="keyword">public interface</span> <span class="class-name">NotificationService</span> {
+    <span class="class-name">String</span> <span class="method">sendNotification</span>(<span class="class-name">String</span> recipient, <span class="class-name">String</span> message);
+}
+
+<span class="comment">// Step 2: Factory Interface</span>
+<span class="keyword">public interface</span> <span class="class-name">NotificationFactory</span> {
+    <span class="class-name">NotificationService</span> <span class="method">createNotificationService</span>();
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="concrete" class="tab-content">
+                    <h4>Concrete Implementations</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 3: Concrete Products</span>
+<span class="annotation">@Service</span>(<span class="string">"smsService"</span>)
+<span class="keyword">public class</span> <span class="class-name">SmsNotificationService</span> <span class="keyword">implements</span> <span class="class-name">NotificationService</span> {
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">String</span> <span class="method">sendNotification</span>(<span class="class-name">String</span> recipient, <span class="class-name">String</span> message) {
+        <span class="keyword">return</span> <span class="class-name">String</span>.<span class="method">format</span>(<span class="string">"SMS sent to %s with message: '%s'"</span>, recipient, message);
+    }
+}
+
+<span class="annotation">@Service</span>(<span class="string">"emailService"</span>)
+<span class="keyword">public class</span> <span class="class-name">EmailNotificationService</span> <span class="keyword">implements</span> <span class="class-name">NotificationService</span> {
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">String</span> <span class="method">sendNotification</span>(<span class="class-name">String</span> recipient, <span class="class-name">String</span> message) {
+        <span class="keyword">return</span> <span class="class-name">String</span>.<span class="method">format</span>(<span class="string">"Email sent to %s with message: '%s'"</span>, recipient, message);
+    }
+}
+
+<span class="comment">// Step 4: Concrete Factories</span>
+<span class="annotation">@Component("smsFactory")</span>
+<span class="keyword">public class</span> <span class="class-name">SmsNotificationFactory</span> <span class="keyword">implements</span> <span class="class-name">NotificationFactory</span> {
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">NotificationService</span> <span class="method">createNotificationService</span>() {
+        <span class="keyword">return new</span> <span class="class-name">SmsNotificationService</span>();
+    }
+}
+
+<span class="annotation">@Component("emailFactory")</span>
+<span class="keyword">public class</span> <span class="class-name">EmailNotificationFactory</span> <span class="keyword">implements</span> <span class="class-name">NotificationFactory</span> {
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">NotificationService</span> <span class="method">createNotificationService</span>() {
+        <span class="keyword">return new</span> <span class="class-name">EmailNotificationService</span>();
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="service" class="tab-content">
+                    <h4>Service Layer: Factory Injection</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">NotificationServiceManager</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">NotificationFactory</span>&gt; factories;
+
+    <span class="comment">// Spring automatically injects all beans of type NotificationFactory into a Map</span>
+    <span class="keyword">public</span> <span class="method">NotificationServiceManager</span>(<span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">NotificationFactory</span>&gt; factories) {
+        <span class="keyword">this</span>.factories = factories;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">String</span> <span class="method">sendNotificationByType</span>(<span class="class-name">String</span> type, <span class="class-name">String</span> recipient, <span class="class-name">String</span> message) {
+        <span class="class-name">NotificationFactory</span> factory = factories.<span class="method">get</span>(type + <span class="string">"Factory"</span>);
+        <span class="keyword">if</span> (factory == null) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Invalid notification type: "</span> + type);
+        }
+        <span class="class-name">NotificationService</span> service = factory.<span class="method">createNotificationService</span>();
+        <span class="keyword">return</span> service.<span class="method">sendNotification</span>(recipient, message);
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="controller" class="tab-content">
+                    <h4>REST Controller: Loose Coupling</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@RestController</span>
+<span class="annotation">@RequestMapping</span>(<span class="string">"/api/v1/notifications"</span>)
+<span class="keyword">public class</span> <span class="class-name">NotificationController</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">NotificationServiceManager</span> serviceManager;
+
+    <span class="keyword">public</span> <span class="method">NotificationController</span>(<span class="class-name">NotificationServiceManager</span> serviceManager) {
+        <span class="keyword">this</span>.serviceManager = serviceManager;
+    }
+    
+    <span class="annotation">@PostMapping</span>(<span class="string">"/send"</span>)
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">String</span>&gt; <span class="method">sendNotification</span>(
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> type,
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> recipient,
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> message) {
+        
+        <span class="keyword">try</span> {
+            <span class="class-name">String</span> result = serviceManager.<span class="method">sendNotificationByType</span>(type, recipient, message);
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">ok</span>(result);
+        } <span class="keyword">catch</span> (<span class="class-name">IllegalArgumentException</span> e) {
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">badRequest</span>().<span class="method">body</span>(e.<span class="method">getMessage</span>());
+        }
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">İleri Seviye Factory Method Uygulamaları</h2>
+            
+            <h3 class="subsection-title">Strategy Pattern ile Entegrasyon</h3>
+            <div class="highlight-box">
+                <p>Factory Method genellikle Strategy Pattern ile birlikte kullanılır. Factory, doğru <b>Strategy</b> nesnesini (örneğimizde <code>NotificationService</code>) oluşturmaktan sorumluyken, istemci (<code>NotificationServiceManager</code>) bu nesneyi kullanarak bir işlemi gerçekleştirir. Bu, sorumlulukların net bir şekilde ayrılmasını sağlar.</p>
+            </div>
+            
+            <h3 class="subsection-title">Spring'in Map Injection Özelliği</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Spring'in Map-based injection'ı, Factory Method'ın en modern implementasyonudur.</span>
+<span class="comment">// notificationFactoryMap key olarak bean adını, value olarak ise bean instance'ını tutar.</span>
+<span class="comment">// Bu sayede switch-case veya if-else bloklarına ihtiyaç kalmaz.</span>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">NotificationFactoryLocator</span> {
+
+    <span class="keyword">private final</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">NotificationFactory</span>&gt; notificationFactoryMap;
+
+    <span class="keyword">public</span> <span class="method">NotificationFactoryLocator</span>(<span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">NotificationFactory</span>&gt; notificationFactoryMap) {
+        <span class="keyword">this</span>.notificationFactoryMap = notificationFactoryMap;
+    }
+
+    <span class="keyword">public</span> <span class="class-name">NotificationFactory</span> <span class="method">getFactory</span>(<span class="class-name">String</span> type) {
+        <span class="keyword">return</span> notificationFactoryMap.<span class="method">get</span>(type + <span class="string">"Factory"</span>);
+    }
+}
+</pre>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2 class="section-title">Sağladığı Faydalar</h2>
+            
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">🔌 Loose Coupling (Gevşek Bağlılık)</div>
+                    İstemci kodu, concrete class'lara bağımlı değildir. Sadece product interface'i ile çalışır, bu da esnekliği artırır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🔄 Enhanced Extensibility (Genişletilebilirlik)</div>
+                    Yeni bir product tipi eklemek, mevcut kodu değiştirmeden (Open/Closed Prensibi) kolayca yapılır. Yeni bir factory ve product sınıfı eklemek yeterlidir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🧪 Better Testability (Daha İyi Test Edilebilirlik)</div>
+                    Factory method'lar, testler sırasında mock'lanabilir. Bu, product'ın karmaşık bağımlılıklarından arındırılmış unit testler yazmayı mümkün kılar.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">✅ Single Responsibility Principle</div>
+                    Nesne oluşturma mantığı, asıl iş mantığından ayrılır. Her sınıf kendi sorumluluğunu yerine getirir.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Alternativeler ve Karşılaştırma</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Pattern</th>
+                        <th>Use Case</th>
+                        <th>Complexity</th>
+                        <th>Factory Method ile Farkı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Abstract Factory</strong></td>
+                        <td>İlişkili nesne aileleri</td>
+                        <td>Yüksek</td>
+                        <td>Tek bir nesne yerine, bir nesne ailesini oluşturur.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Builder Pattern</strong></td>
+                        <td>Karmaşık, adım adım nesne oluşturma</td>
+                        <td>Orta</td>
+                        <td>Tek bir "build" method'u ile karmaşık nesneleri inşa eder.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Singleton</strong></td>
+                        <td>Uygulama genelinde tek bir nesne</td>
+                        <td>Düşük</td>
+                        <td>Her zaman aynı nesne instance'ını döndürür.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Plain "new"</strong></td>
+                        <td>Basit, bağımlılıksız nesneler</td>
+                        <td>Çok Düşük</td>
+                        <td>Sıkı bağımlılık yaratır, esnek değildir.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box">
+                    <h4 style="color: #10b981; margin-bottom: 1rem;">✅ Factory Method Avantajları</h4>
+                    <ul>
+                        <li><strong>Esneklik:</strong> Yeni product'lar kolayca eklenebilir.</li>
+                        <li><strong>Daha Az Bağlılık:</strong> Client, concrete class'ları bilmek zorunda kalmaz.</li>
+                        <li><strong>Kod Organizasyonu:</strong> Creation logic'i tek bir yerde toplanır.</li>
+                        <li><strong>Çeviklik:</strong> Değişiklikler için daha az etki alanı (ripple effect).</li>
+                    </ul>
+                </div>
+                
+                <div class="cons-box">
+                    <h4 style="color: #ef4444; margin-bottom: 1rem;">⚠️ Dikkat Edilmesi Gerekenler</h4>
+                    <ul>
+                        <li><strong>Artan Sınıf Sayısı:</strong> Her yeni product için yeni bir factory sınıfı gerekebilir.</li>
+                        <li><strong>Ekstra Karmaşıklık:</strong> Basit nesneler için overkill olabilir.</li>
+                        <li><strong>Factory "Hell":</strong> Çok fazla factory sınıfı yönetimi zorlaştırabilir.</li>
+                        <li><strong>Kod Düzeni:</strong> Doğru şekilde uygulanmazsa karmaşa yaratır.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Production Ready Implementation</h2>
+            
+            <div class="code-block">
+<pre>
+<span class="comment">// Dinamik olarak factory seçimi ve kullanım örneği</span>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">ProductionNotificationService</span> {
+
+    <span class="keyword">private final</span> <span class="class-name">ApplicationContext</span> context;
+
+    <span class="keyword">public</span> <span class="method">ProductionNotificationService</span>(<span class="class-name">ApplicationContext</span> context) {
+        <span class="keyword">this</span>.context = context;
+    }
+
+    <span class="keyword">public</span> <span class="class-name">NotificationResponse</span> <span class="method">processAndSend</span>(<span class="class-name">NotificationRequest</span> request) {
+        <span class="comment">// Dynamic factory lookup from Spring Context</span>
+        <span class="class-name">NotificationFactory</span> factory = context.<span class="method">getBean</span>(request.<span class="method">getType</span>() + <span class="string">"Factory"</span>, <span class="class-name">NotificationFactory</span>.<span class="keyword">class</span>);
+        <span class="class-name">NotificationService</span> service = factory.<span class="method">createNotificationService</span>();
+
+        <span class="class-name">String</span> result = service.<span class="method">sendNotification</span>(request.<span class="method">getRecipient</span>(), request.<span class="method">getMessage</span>());
+        
+        <span class="keyword">return new</span> <span class="class-name">NotificationResponse</span>(<span class="keyword">true</span>, result);
+    }
+}
+</pre>
+            </div>
+
+            <div class="highlight-box">
+                <strong>Conclusion:</strong> Factory Method, özellikle bir interface'in farklı implementasyonlarına ihtiyaç duyulan ve bu implementasyonların dinamik olarak seçilip oluşturulması gereken senaryolarda kritik bir öneme sahiptir. Spring'in güçlü IoC (Inversion of Control) container'ı ile birleştiğinde, <b>"new"</b> keyword'ünün neden olduğu katı bağımlılıklardan kurtularak çok daha esnek, genişletilebilir ve sürdürülebilir bir kod yapısı oluşturulabilir.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            event.target.classList.add('active');
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
+            });
+        });
+
+        document.querySelectorAll('.code-block').forEach(block => {
+            const copyButton = document.createElement('button');
+            copyButton.innerHTML = '📋';
+            copyButton.style.cssText = `
+                position: absolute;
+                top: 0.5rem;
+                left: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: white;
+                padding: 0.3rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+            `;
+            
+            copyButton.addEventListener('click', () => {
+                const text = block.querySelector('pre').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyButton.innerHTML = '✅';
+                    setTimeout(() => copyButton.innerHTML = '📋', 2000);
+                });
+            });
+            
+            copyButton.addEventListener('mouseenter', () => {
+                copyButton.style.opacity = '1';
+            });
+            
+            copyButton.addEventListener('mouseleave', () => {
+                copyButton.style.opacity = '0.7';
+            });
+            
+            block.appendChild(copyButton);
+        });
+    </script>
+</body>
+</html>

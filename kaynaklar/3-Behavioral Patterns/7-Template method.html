@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Template Method Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Template Method Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Algoritma İskeletini Koruma</p>
+    </header>
+
+    <div class="content">
+        <h2>Template Method Nedir?</h2>
+        <p><strong>Template Method</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desenin temel amacı, bir algoritmanın iskeletini (bütününde olan adımlarını) soyut bir sınıf içinde tanımlamaktır. Bu iskelet, sabit adımları ve alt sınıflar tarafından özelleştirilebilen (override edilebilen) soyut adımları içerir. Bu sayede, alt sınıflar algoritmanın genel yapısını değiştirmeden, sadece kendi özel adımlarını implemente edebilirler.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>AbstractClass (Soyut Sınıf):</strong> Algoritmanın iskeletini (template metodunu) tanımlayan soyut sınıftır. Bu sınıf, bir dizi metodu (bazıları soyut, bazıları somut) çağırarak ana algoritma akışını yönetir.</li>
+            <li><strong>ConcreteClass (Somut Sınıf):</strong> <code>AbstractClass</code>'ı miras alan ve soyut metotları kendi özel implementasyonlarıyla dolduran sınıflardır.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, farklı veri tipleri veya kullanıcı rolleri için benzer ancak bazı adımları değişen iş akışları olabilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir raporlama sistemi API'si geliştirdiğinizi düşünün. Bu API, farklı rapor formatlarında (örneğin, PDF, CSV, JSON) veri dışa aktarımı yapabiliyor. Rapor oluşturma sürecinin genel adımları şunlar: veriyi çek, veriyi işle, veriyi formatla ve dosyayı kaydet. Ancak, "veriyi işle" ve "veriyi formatla" adımları her format için farklılık gösteriyor.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Kod Tekrarı):</strong> Eğer Template Method deseni kullanılmazsa, her bir rapor formatı için tüm adımları tekrar tekrar yazmamız gerekir:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class PdfReportService {
+    public void generateReport() {
+        // Veriyi çek
+        List&lt;Data&gt; data = fetchData();
+        // Veriyi işle (PDF'e özgü)
+        processPdfData(data);
+        // PDF'i formatla
+        PdfDocument document = createPdf(data);
+        // Kaydet
+        saveFile(document);
+    }
+}
+
+@Service
+public class CsvReportService {
+    public void generateReport() {
+        // Veriyi çek (aynı kod)
+        List&lt;Data&gt; data = fetchData();
+        // Veriyi işle (CSV'ye özgü)
+        processCsvData(data);
+        // CSV'yi formatla
+        String csvContent = createCsv(data);
+        // Kaydet (aynı kod)
+        saveFile(csvContent);
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, **kod tekrarına (code duplication)** neden olur. "Veriyi çek" ve "dosyayı kaydet" gibi sabit adımlar her sınıfta yeniden yazılır. Yeni bir format (örneğin, XLSX) eklemek istediğimizde, bu sabit adımları yeniden implemente etmek zorunda kalırız. Bu, kodun bakımını zorlaştırır ve hatalara açık hale getirir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'nin ihlalidir.</p>
+
+        <p><strong>Template Method Çözümü:</strong> Bu sorunu çözmek için, raporlama algoritmasının iskeletini bir soyut sınıfta tanımlayabiliriz. Sabit adımlar somut metotlar olarak kalırken, değişken adımlar soyut metotlar olarak tanımlanır ve her somut sınıf tarafından kendi formatına göre doldurulur.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Raporlama algoritmasının iskeletini tanımlayan bir soyut sınıf (<code>AbstractReportGenerator</code>) oluşturun.</li>
+            <li>Bu sınıfta, algoritmanın ana akışını yöneten bir <code>templateMethod()</code> (örneğin, <code>generateReport()</code>) metodu oluşturun. Bu metot <code>final</code> olabilir.</li>
+            <li>Değişken adımları (örneğin, <code>processData()</code>, <code>formatData()</code>) soyut metotlar olarak tanımlayın.</li>
+            <li>Her bir rapor formatı için (<code>PdfReportGenerator</code>, <code>CsvReportGenerator</code>), bu soyut sınıfı miras alın ve soyut metotları implemente edin.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Abstract Class: AbstractReportGenerator.java
+public abstract class AbstractReportGenerator {
+    
+    // Sabit adım
+    private List&lt;Data&gt; fetchData() {
+        // Veritabanı veya başka bir kaynaktan veriyi çekme mantığı
+        return Arrays.asList(new Data("Product A"), new Data("Product B"));
+    }
+    
+    // Soyut adımlar (alt sınıflar dolduracak)
+    protected abstract String processData(List&lt;Data&gt; data);
+    protected abstract String formatData(String processedData);
+    
+    // Sabit adım
+    private void saveFile(String content) {
+        System.out.println("Dosya kaydedildi: " + content.substring(0, 20) + "...");
+    }
+
+    // Template Method (Final olmalı)
+    public final void generateReport() {
+        List&lt;Data&gt; data = fetchData();
+        String processedData = processData(data);
+        String formattedData = formatData(processedData);
+        saveFile(formattedData);
+    }
+}
+
+// 2. Concrete Class: CsvReportGenerator.java
+@Component
+public class CsvReportGenerator extends AbstractReportGenerator {
+    @Override
+    protected String processData(List&lt;Data&gt; data) {
+        return data.stream().map(Data::getName).collect(Collectors.joining(","));
+    }
+
+    @Override
+    protected String formatData(String processedData) {
+        return "name\n" + processedData;
+    }
+}
+
+// 3. Concrete Class: PdfReportGenerator.java
+@Component
+public class PdfReportGenerator extends AbstractReportGenerator {
+    @Override
+    protected String processData(List&lt;Data&gt; data) {
+        // PDF'e özgü işleme
+        return "PDF Content based on " + data.size() + " items";
+    }
+
+    @Override
+    protected String formatData(String processedData) {
+        // PDF formatlama
+        return "&lt;PDF-HEADER&gt;" + processedData + "&lt;/PDF-FOOTER&gt;";
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>API Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/reports")
+public class ReportController {
+    // Spring'in listeye enjeksiyon özelliği
+    private final Map&lt;String, AbstractReportGenerator&gt; reportGenerators;
+
+    @Autowired
+    public ReportController(List&lt;AbstractReportGenerator&gt; generators) {
+        this.reportGenerators = generators.stream()
+            .collect(Collectors.toMap(
+                gen -> gen.getClass().getSimpleName().replace("ReportGenerator", "").toLowerCase(),
+                gen -> gen
+            ));
+    }
+
+    @GetMapping("/generate/{format}")
+    public ResponseEntity&lt;?&gt; generateReport(@PathVariable String format) {
+        AbstractReportGenerator generator = reportGenerators.get(format);
+        if (generator == null) {
+            return ResponseEntity.badRequest().body("Unsupported format: " + format);
+        }
+        
+        generator.generateReport();
+        return ResponseEntity.ok("Report generation process started for " + format);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Kod Tekrarını Önleme:</strong> Algoritmanın ortak adımları tek bir yerde (soyut sınıfta) tanımlandığı için kod tekrarı ortadan kalkar. Bu, kodun daha temiz ve bakımının daha kolay olmasını sağlar.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir rapor formatı eklemek istediğinizde (örneğin, XLSX), mevcut ana sınıfları veya kontrolcüyü değiştirmenize gerek kalmaz. Sadece <code>AbstractReportGenerator</code>'ı miras alan yeni bir somut sınıf oluşturmanız yeterlidir. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Tutarlılık ve Kontrol:</strong> Algoritmanın iskeleti sabit olduğu için, tüm alt sınıflar aynı temel akışı izlemek zorundadır. Bu, işlemin tutarlı bir şekilde yürütülmesini garanti eder ve geliştiricilerin algoritmanın ana yapısını bozmasını engeller.
+            </li>
+            <li>
+                <strong>İstemci Kodunun Basitleştirilmesi:</strong> Kontrolcü veya istemci kodu, hangi somut sınıfın çalıştığını bilmek zorunda değildir. Sadece soyut sınıfa referans tutar ve onun <code>templateMethod()</code>'unu çağırır. Bu, istemci kodunun sade ve okunur kalmasını sağlar.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

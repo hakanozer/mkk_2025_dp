@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Composite Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Composite Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Tekil ve Gruplandırılmış Nesneleri Tek Bir Arayüzle Yönetme</p>
+    </header>
+
+    <div class="content">
+        <h2>Composite Nedir?</h2>
+        <p><strong>Composite</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, bir nesne hiyerarşisi oluşturarak, istemcinin tekil nesneler (leaf) ve nesne grupları (composite) arasında ayrım yapmadan, her ikisini de aynı arayüz üzerinden işleyebilmesini sağlamaktır. Bu sayede, ağaç benzeri bir yapıdaki bileşenlerin bütünü ve parçaları, aynı şekilde ele alınabilir.</p>
+
+        <p>Desen üç ana bileşenden oluşur:
+        <ul>
+            <li><strong>Component (Bileşen):</strong> Hem tekil nesneler hem de gruplar için ortak bir arayüz tanımlar. Bu arayüz, her iki türün de sahip olacağı ortak operasyonları içerir.</li>
+            <li><strong>Leaf (Yaprak):</strong> Hiyerarşideki tekil nesneleri temsil eder. Başka bir bileşen içermezler.</li>
+            <li><strong>Composite (Bileşik):</strong> Alt bileşenleri (tekil veya diğer bileşikler) tutan ve onlar üzerinde operasyonları gerçekleştiren sınıftır. Bu sınıf, çocuk bileşenleri yönetmek için ek metotlar (<code>add()</code>, <code>remove()</code>) içerir.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, bir kaynak (resource) veya bir veri yapısı hem tekil öğelerden hem de bu öğelerin gruplarından oluşabilir. İstemci, bu yapı üzerinde tek bir işlem çağrısı yaparak hem tekil öğeleri hem de grupları aynı şekilde işlemek istediğinde Composite deseni ideal bir çözüm sunar. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir dosya sistemi yönetim sistemi API'si geliştirdiğinizi düşünün. Bu sistemde hem tekil dosyalar (<code>File</code>) hem de dosya grupları (<code>Folder</code>) bulunuyor. Bir kullanıcı, hem tek bir dosyanın boyutunu hem de bir klasörün içindeki tüm dosyaların toplam boyutunu aynı API çağrısıyla alabilmelidir.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (İç İçe IF-ELSE):</strong> Eğer Composite deseni kullanılmazsa, kontrolcü veya servis katmanı, her bir bileşenin türünü manuel olarak kontrol etmek ve farklı mantıklar uygulamak zorunda kalır:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class FileSystemService {
+    public long calculateSize(Object component) {
+        if (component instanceof File) {
+            File file = (File) component;
+            return file.getSize();
+        } else if (component instanceof Folder) {
+            Folder folder = (Folder) component;
+            long totalSize = 0;
+            for (Object child : folder.getChildren()) {
+                if (child instanceof File) {
+                    totalSize += ((File) child).getSize();
+                } else if (child instanceof Folder) {
+                    // Tekrar eden kod: Alt klasörü de hesapla
+                    totalSize += calculateSize(child);
+                }
+            }
+            return totalSize;
+        }
+        return 0;
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, karmaşık ve iç içe geçmiş bir mantığa yol açar. "Toplam boyutu hesapla" gibi bir operasyonun mantığı, hem dosya hem de klasör tipleri için tekrarlanmak zorundadır. Yeni bir bileşen tipi (örneğin, <code>CompressedFile</code>) eklendiğinde, mevcut kodun değiştirilmesi gerekir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ve **Tek Sorumluluk Prensibi (Single Responsibility Principle)**'ni ihlal eder.</p>
+
+        <p><strong>Composite Çözümü:</strong> Bu sorunu çözmek için, hem dosyaların hem de klasörlerin ortak bir arayüzü (<code>FileSystemComponent</code>) implemente etmesini sağlayabiliriz. Bu sayede, istemci her ikisini de aynı şekilde işleyebilir.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Hem dosya hem de klasör için ortak bir <code>FileSystemComponent</code> arayüzü (Component) tanımlayın. Bu arayüz, <code>getSize()</code> gibi ortak operasyonları içerecektir.</li>
+            <li>Tekil nesneyi (yaprak) temsil eden <code>File</code> sınıfını (Leaf), <code>FileSystemComponent</code> arayüzünü implemente ederek oluşturun.</li>
+            <li>Bileşik nesneyi (composite) temsil eden <code>Folder</code> sınıfını, hem <code>FileSystemComponent</code> arayüzünü implemente ederek hem de bir alt bileşen listesi (<code>List&lt;FileSystemComponent&gt;</code>) tutarak oluşturun. <code>getSize()</code> metodu, alt bileşenlerin boyutunu toplar.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Component Arayüzü: FileSystemComponent.java
+public interface FileSystemComponent {
+    long getSize();
+    String getName();
+}
+
+// 2. Leaf (Yaprak): File.java
+public class File implements FileSystemComponent {
+    private final String name;
+    private final long size;
+    // ... constructor, getters
+    @Override
+    public long getSize() {
+        return size;
+    }
+    // ...
+}
+
+// 3. Composite (Bileşik): Folder.java
+public class Folder implements FileSystemComponent {
+    private final String name;
+    private final List&lt;FileSystemComponent&gt; children = new ArrayList&lt;&gt;();
+    // ... constructor
+    
+    public void addComponent(FileSystemComponent component) {
+        children.add(component);
+    }
+    
+    @Override
+    public long getSize() {
+        return children.stream().mapToLong(FileSystemComponent::getSize).sum();
+    }
+    // ...
+}
+
+// 4. API Kontrolcüsü
+@RestController
+@RequestMapping("/files")
+public class FileSystemController {
+    
+    @PostMapping("/calculateSize")
+    public ResponseEntity&lt;Long&gt; calculateSize(@RequestBody Folder rootFolder) {
+        // Kontrolcü, tekil dosya veya klasör arasındaki farkı bilmek zorunda değil
+        return ResponseEntity.ok(rootFolder.getSize());
+    }
+    
+    // Uygulama yapısı (örnek)
+    public void setupExample() {
+        File file1 = new File("test.txt", 100);
+        File file2 = new File("document.pdf", 500);
+        
+        Folder subFolder = new Folder("sub_folder");
+        subFolder.addComponent(file2);
+        
+        Folder rootFolder = new Folder("root");
+        rootFolder.addComponent(file1);
+        rootFolder.addComponent(subFolder);
+        
+        // Root klasörün boyutunu hesaplayabiliriz
+        long totalSize = rootFolder.getSize(); // Otomatik olarak içindeki tüm elemanların boyutunu hesaplar
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Tek Tip Ele Alma:</strong> İstemci kodu (<code>FileSystemController</code>), tekil nesneler (<code>File</code>) ve gruplandırılmış nesneler (<code>Folder</code>) arasındaki farkı bilmek zorunda kalmaz. Her ikisini de aynı <code>FileSystemComponent</code> arayüzü üzerinden ele alır. Bu, kodu daha sade ve okunur hale getirir.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir bileşen türü (örneğin, <code>SymLink</code>) eklemek istediğinizde, sadece <code>FileSystemComponent</code> arayüzünü implemente eden yeni bir sınıf oluşturmanız yeterlidir. Mevcut ana sınıflar veya kontrolcüde değişiklik yapmaya gerek kalmaz. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Özyinelemeli Yapı:</strong> Ağaç benzeri hiyerarşilerde özyinelemeli operasyonları (örneğin, toplam boyut hesaplama) kolayca implemente etmeye olanak tanır.
+            </li>
+            <li>
+                <strong>Sorumlulukların Ayrılması:</strong> Her sınıf kendi sorumluluğunu üstlenir. <code>File</code> sınıfı kendi boyutunu döndürmekten sorumluyken, <code>Folder</code> sınıfı alt bileşenlerin boyutunu toplamaktan sorumludur. Bu, **Single Responsibility Principle (Tek Sorumluluk Prensibi)**'ne uyum sağlar.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype Pattern - Spring Boot 3.5 REST API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .subsection-title {
+            color: #4a5568;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .subsection-title::before {
+            content: "▶";
+            color: #667eea;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #2d3748;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .annotation { color: #8be9fd; }
+        .class-name { color: #50fa7b; }
+        .method { color: #ffb86c; }
+
+        .benefit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .benefit-item {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(5px);
+        }
+
+        .benefit-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .architecture-diagram {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-family: monospace;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border: 1px solid #667eea30;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fbbf2410, #f6932510);
+            border: 1px solid #fbbf2430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #fbbf24;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .tab-container {
+            margin: 1.5rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+            padding: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .pros-box {
+            background: linear-gradient(135deg, #10b98110, #059c6910);
+            border: 1px solid #10b98130;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #10b981;
+        }
+
+        .cons-box {
+            background: linear-gradient(135deg, #ef444410, #dc262610);
+            border: 1px solid #ef444430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .benefit-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .pros-cons-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .pattern-flow {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+
+        .flow-arrow {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Prototype Design Pattern</h1>
+            <p>Spring Boot 3.5 REST API Implementation Guide</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Pattern Tanımı ve Amacı</h2>
+            <p><strong>Prototype (Prototip)</strong>, mevcut bir nesneyi kopyalayarak (cloning) yeni nesneler oluşturmanızı sağlayan bir creational (yaratımsal) tasarım desenidir. Bu desen, bir nesnenin ilk oluşturulma maliyeti yüksek olduğunda veya karmaşık nesnelerin farklı varyasyonlarını hızla oluşturmanız gerektiğinde oldukça verimli bir yaklaşımdır.</p>
+            
+            <div class="highlight-box">
+                <strong>Temel Prensip:</strong> "Bir nesne oluşturmak için, ilk nesneyi sıfırdan oluşturmak yerine, halihazırda var olan bir nesneyi kopyala."
+            </div>
+
+            <h3 class="subsection-title">GoF Tanımı</h3>
+            <p><em>"Oluşturulacak nesne türlerini, prototip bir örneği klonlayarak belirle."</em></p>
+
+            <div class="pattern-flow">
+                <div class="flow-step">Prototype Interface</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Concrete Prototype</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Client</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">clones()</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Neden-Sonuç İlişkisi</h2>
+            
+            <h3 class="subsection-title">Problem: Maliyetli ve Karmaşık Nesne Oluşturma</h3>
+            <div class="warning-box">
+                <strong>Sorun:</strong> Geleneksel <code>new</code> keyword'ü ile nesne oluşturmanın zorlukları:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Yüksek Maliyet:</strong> Nesne oluşturma, veritabanı bağlantıları, dosya okuma veya yoğun CPU işlemleri gibi pahalı işlemler gerektirebilir.</li>
+                    <li><strong>Kod Tekrarı:</strong> Aynı veya benzer konfigürasyonlara sahip nesneleri oluşturmak için kod tekrarı yaşanır.</li>
+                    <li><strong>Sınıf Patlaması:</strong> Her küçük varyasyon için yeni bir alt sınıf (subclass) oluşturmak zorunda kalmak, sınıf hiyerarşisinin şişmesine neden olabilir.</li>
+                    <li><strong>Sıkı Bağlılık:</strong> İstemci kodu, somut (concrete) nesne sınıflarına bağımlı hale gelir, bu da esnekliği azaltır.</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+<pre>
+<span class="comment">// Anti-pattern: Object creation with high overhead</span>
+<span class="keyword">public class</span> <span class="class-name">ServerConnection</span> {
+    <span class="keyword">public</span> <span class="method">ServerConnection</span>(<span class="class-name">String</span> config) {
+        <span class="comment">// Simulating a costly initialization process</span>
+        <span class="keyword">try</span> {
+            <span class="class-name">Thread</span>.<span class="method">sleep</span>(2000); 
+            <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Connection to server established with config: "</span> + config);
+        } <span class="keyword">catch</span> (<span class="class-name">InterruptedException</span> e) {
+            <span class="class-name">Thread</span>.<span class="method">currentThread</span>().<span class="method">interrupt</span>();
+        }
+    }
+}
+
+<span class="comment">// A new instance is created every time, which is inefficient.</span>
+<span class="keyword">public class</span> <span class="class-name">Client</span> {
+    <span class="keyword">public void</span> <span class="method">performTask</span>() {
+        <span class="class-name">ServerConnection</span> connection1 = <span class="keyword">new</span> <span class="class-name">ServerConnection</span>(<span class="string">"PROD_CONFIG"</span>);
+        <span class="class-name">ServerConnection</span> connection2 = <span class="keyword">new</span> <span class="class-name">ServerConnection</span>(<span class="string">"PROD_CONFIG"</span>); <span class="comment">// Repetitive costly operation</span>
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Çözüm: Prototype ile Kopyalama</h3>
+            <div class="highlight-box">
+                <strong>Sonuç:</strong> Prototype kullanımı ile:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Verimli Nesne Oluşturma:</strong> Ağır maliyetli nesne oluşturma işlemlerini tekrarlamak yerine, mevcut nesneler kopyalanır.</li>
+                    <li><strong>Dinamik Yapılandırma:</strong> Çalışma zamanında (runtime) nesneler klonlanabilir ve yeni konfigürasyonlarla anında güncellenebilir.</li>
+                    <li><strong>Genişletilebilirlik:</strong> Yeni bir nesne türü eklemek için alt sınıflar oluşturmaya gerek kalmaz. Sadece bir prototip nesnesi oluşturup onu klonlamak yeterlidir.</li>
+                    <li><strong>Gevşek Bağlılık:</strong> İstemci kodu, somut sınıfların karmaşık yapısını bilmeden sadece bir prototip nesnesiyle etkileşime girer.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Spring Boot 3.5 Implementation</h2>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('product')">Prototype Sınıfı</button>
+                    <button class="tab-button" onclick="showTab('registry')">Prototype Kayıt Mekanizması</button>
+                    <button class="tab-button" onclick="showTab('service')">REST Servisi</button>
+                    <button class="tab-button" onclick="showTab('controller')">REST Controller</button>
+                </div>
+
+                <div id="product" class="tab-content active">
+                    <h4>Prototype Interface ve Concrete Sınıfı</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 1: Prototype Interface</span>
+<span class="keyword">public interface</span> <span class="class-name">Document</span> <span class="keyword">extends</span> <span class="class-name">Cloneable</span> {
+    <span class="class-name">Document</span> <span class="method">clone</span>();
+    <span class="keyword">void</span> <span class="method">loadData</span>();
+    <span class="class-name">String</span> <span class="method">getContent</span>();
+}
+
+<span class="comment">// Step 2: Concrete Prototype Class</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ReportDocument</span> <span class="keyword">implements</span> <span class="class-name">Document</span> {
+    
+    <span class="keyword">private</span> <span class="class-name">String</span> title;
+    <span class="keyword">private</span> <span class="class-name">String</span> content;
+
+    <span class="keyword">public</span> <span class="method">ReportDocument</span>() {
+        <span class="comment">// Public no-arg constructor is required for Spring</span>
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">loadData</span>() {
+        <span class="comment">// Simulating a costly data loading operation</span>
+        <span class="keyword">this</span>.title = <span class="string">"Financial Report "</span> + <span class="class-name">System</span>.<span class="method">currentTimeMillis</span>();
+        <span class="keyword">this</span>.content = <span class="string">"Data from external source loaded."</span>;
+        <span class="class-name">System</span>.out.<span class="method">println</span>(<span class="string">"Data loaded for: "</span> + title);
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">Document</span> <span class="method">clone</span>() {
+        <span class="keyword">try</span> {
+            <span class="comment">// Shallow copy is enough for primitives/immutables</span>
+            <span class="keyword">return</span> (<span class="class-name">Document</span>) <span class="keyword">super</span>.<span class="method">clone</span>(); 
+        } <span class="keyword">catch</span> (<span class="class-name">CloneNotSupportedException</span> e) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalStateException</span>(e);
+        }
+    }
+    
+    <span class="comment">// Getters and Setters...</span>
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="registry" class="tab-content">
+                    <h4>Prototype Kayıt Mekanizması (Registry)</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 3: Prototype Registry/Cache</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">DocumentRegistry</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">Document</span>&gt; prototypes = <span class="keyword">new</span> <span class="class-name">HashMap</span>&lt;&gt;();
+
+    <span class="annotation">@PostConstruct</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">init</span>() {
+        <span class="class-name">ReportDocument</span> report = <span class="keyword">new</span> <span class="class-name">ReportDocument</span>();
+        report.<span class="method">loadData</span>(); <span class="comment">// Costly initialization happens only once</span>
+        prototypes.<span class="method">put</span>(<span class="string">"financialReport"</span>, report);
+    }
+
+    <span class="keyword">public</span> <span class="class-name">Document</span> <span class="method">getDocumentPrototype</span>(<span class="class-name">String</span> type) {
+        <span class="class-name">Document</span> prototype = prototypes.<span class="method">get</span>(type);
+        <span class="keyword">if</span> (prototype == null) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Unknown document type: "</span> + type);
+        }
+        <span class="keyword">return</span> prototype;
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="service" class="tab-content">
+                    <h4>Service Layer: Klondalama İşlemi</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 4: Service Layer to use the prototype</span>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">DocumentService</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">DocumentRegistry</span> registry;
+
+    <span class="keyword">public</span> <span class="method">DocumentService</span>(<span class="class-name">DocumentRegistry</span> registry) {
+        <span class="keyword">this</span>.registry = registry;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">String</span> <span class="method">createAndCustomizeDocument</span>(<span class="class-name">String</span> documentType, <span class="class-name">String</span> customTitle) {
+        <span class="comment">// Get the prototype from the registry (no costly creation here)</span>
+        <span class="class-name">Document</span> prototype = registry.<span class="method">getDocumentPrototype</span>(documentType);
+        
+        <span class="comment">// Clone the prototype to create a new instance</span>
+        <span class="class-name">Document</span> newDocument = prototype.<span class="method">clone</span>();
+        
+        <span class="comment">// Customize the new object without affecting the prototype</span>
+        ((<span class="class-name">ReportDocument</span>) newDocument).<span class="method">setTitle</span>(customTitle);
+        
+        <span class="keyword">return</span> <span class="class-name">String</span>.<span class="method">format</span>(<span class="string">"Document cloned with title: '%s' and content: '%s'"</span>,
+                ((<span class="class-name">ReportDocument</span>) newDocument).<span class="method">getTitle</span>(), newDocument.<span class="method">getContent</span>());
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="controller" class="tab-content">
+                    <h4>REST Controller: Kullanım Örneği</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Step 5: REST Controller to expose the service</span>
+<span class="annotation">@RestController</span>
+<span class="annotation">@RequestMapping</span>(<span class="string">"/api/v1/documents"</span>)
+<span class="keyword">public class</span> <span class="class-name">DocumentController</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">DocumentService</span> documentService;
+
+    <span class="keyword">public</span> <span class="method">DocumentController</span>(<span class="class-name">DocumentService</span> documentService) {
+        <span class="keyword">this</span>.documentService = documentService;
+    }
+    
+    <span class="annotation">@GetMapping</span>(<span class="string">"/create"</span>)
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">String</span>&gt; <span class="method">createDocument</span>(
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> type,
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> title) {
+        
+        <span class="keyword">try</span> {
+            <span class="class-name">String</span> result = documentService.<span class="method">createAndCustomizeDocument</span>(type, title);
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">ok</span>(result);
+        } <span class="keyword">catch</span> (<span class="class-name">IllegalArgumentException</span> e) {
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">badRequest</span>().<span class="method">body</span>(e.<span class="method">getMessage</span>());
+        }
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Sağladığı Faydalar</h2>
+            
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">🚀 Performans Artışı</div>
+                    Nesne oluşturma maliyetini ortadan kaldırır. Özellikle karmaşık nesnelerin yaratılması için harcanan zamanı ve kaynakları önemli ölçüde azaltır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🧬 Esnek ve Dinamik Yapılandırma</div>
+                    Çalışma zamanında farklı prototiplerden yeni nesneler oluşturarak, uygulamanın dinamik olarak farklı durumlara uyum sağlamasına olanak tanır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">✅ Kod Tekrarını Önleme</div>
+                    Benzer nesnelerin her seferinde sıfırdan oluşturulması yerine, bir şablon üzerinden klonlanması ile kod tekrarı (duplication) engellenir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🚫 Alt Sınıf Patlamasını Engelleme</div>
+                    Her küçük fark için yeni bir alt sınıf oluşturmak yerine, ana prototip nesnesini klonlayarak ve klon üzerinde değişiklikler yaparak bu sorunun önüne geçilir.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Alternativeler ve Karşılaştırma</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Pattern</th>
+                        <th>Use Case</th>
+                        <th>Prototype ile Farkı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Factory Method</strong></td>
+                        <td>Hangi nesnenin oluşturulacağına alt sınıfların karar vermesi</td>
+                        <td>Doğrudan nesne yaratır. Prototipin aksine, mevcut bir nesneyi kopyalama mantığı yoktur.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Builder</strong></td>
+                        <td>Karmaşık nesnelerin adım adım oluşturulması</td>
+                        <td>Sıfırdan bir nesne inşa ederken, Prototype mevcut bir nesneyi kopyalar. Birlikte de kullanılabilirler.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Singleton</strong></td>
+                        <td>Uygulama genelinde tek bir nesne</td>
+                        <td>Her zaman aynı nesne instance'ını döndürürken, Prototype her çağrıda yeni bir kopya oluşturur.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box">
+                    <h4 style="color: #10b981; margin-bottom: 1rem;">✅ Prototype Avantajları</h4>
+                    <ul>
+                        <li><strong>Verimlilik:</strong> Maliyetli nesne oluşturma işlemlerinden kaçınır.</li>
+                        <li><strong>Esneklik:</strong> Client kod, somut sınıflara bağımlı kalmaz.</li>
+                        <li><strong>Modülerlik:</strong> Nesne oluşturma ve klonlama mantığı, iş mantığından ayrılır.</li>
+                    </ul>
+                </div>
+                
+                <div class="cons-box">
+                    <h4 style="color: #ef4444; margin-bottom: 1rem;">⚠️ Dikkat Edilmesi Gerekenler</h4>
+                    <ul>
+                        <li><strong>Shallow vs. Deep Copy:</strong> Nesne referansları varsa, derin kopyalama (deep copy) yapmak karmaşıklığı artırır.</li>
+                        <li><strong>Ekstra Kod:</strong> Basit nesneler için gereksiz yere karmaşıklık getirebilir.</li>
+                        <li><strong>Değiştirilebilirlik (Mutability):</strong> Kopyalanan nesnenin değiştirilmesi, kaynak nesneyi etkilememelidir; bu, dikkatli bir implementasyon gerektirir.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Kullanım Alanları</h2>
+            
+            <div class="highlight-box">
+                <p>Prototype deseni, özellikle aşağıdaki durumlarda tercih edilir:</p>
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li>Objeleri sıfırdan oluşturmak, I/O veya hesaplama açısından maliyetli olduğunda.</li>
+                    <li>Sisteminizde benzer özelliklere sahip birçok nesnenin dinamik olarak oluşturulması gerektiğinde.</li>
+                    <li>Alt sınıf sayısını minimumda tutmak istediğinizde.</li>
+                    <li>Bir oyunda aynı türden (örn. asker) binlerce nesne yaratılması gerektiğinde.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            
+            event.target.classList.add('active');
+        }
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
+            });
+        });
+
+        document.querySelectorAll('.code-block').forEach(block => {
+            const copyButton = document.createElement('button');
+            copyButton.innerHTML = '📋';
+            copyButton.style.cssText = `
+                position: absolute;
+                top: 0.5rem;
+                left: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: white;
+                padding: 0.3rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+            `;
+            
+            copyButton.addEventListener('click', () => {
+                const text = block.querySelector('pre').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyButton.innerHTML = '✅';
+                    setTimeout(() => copyButton.innerHTML = '📋', 2000);
+                });
+            });
+            
+            copyButton.addEventListener('mouseenter', () => {
+                copyButton.style.opacity = '1';
+            });
+            
+            copyButton.addEventListener('mouseleave', () => {
+                copyButton.style.opacity = '0.7';
+            });
+            
+            block.appendChild(copyButton);
+        });
+    </script>
+</body>
+</html>

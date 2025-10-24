@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Builder Pattern - Spring Boot 3.5 REST API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .subsection-title {
+            color: #4a5568;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .subsection-title::before {
+            content: "▶";
+            color: #667eea;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #2d3748;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .annotation { color: #8be9fd; }
+        .class-name { color: #50fa7b; }
+        .method { color: #ffb86c; }
+
+        .benefit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .benefit-item {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(5px);
+        }
+
+        .benefit-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .architecture-diagram {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-family: monospace;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border: 1px solid #667eea30;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fbbf2410, #f6932510);
+            border: 1px solid #fbbf2430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #fbbf24;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .tab-container {
+            margin: 1.5rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+            padding: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .pros-box {
+            background: linear-gradient(135deg, #10b98110, #059c6910);
+            border: 1px solid #10b98130;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #10b981;
+        }
+
+        .cons-box {
+            background: linear-gradient(135deg, #ef444410, #dc262610);
+            border: 1px solid #ef444430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .benefit-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .pros-cons-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        .pattern-flow {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin: 0.5rem;
+            font-weight: 600;
+        }
+
+        .flow-arrow {
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Builder Design Pattern</h1>
+            <p>Spring Boot 3.5 REST API Implementation Guide</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Pattern Tanımı ve Amacı</h2>
+            <p>Builder Pattern, karmaşık nesnelerin step-by-step oluşturulmasını sağlayan creational design pattern'dır. Bu pattern, nesne oluşturma sürecini nesnenin kendisinden ayırarak, aynı construction process'in farklı representations oluşturmasına olanak tanır.</p>
+            
+            <div class="highlight-box">
+                <strong>Temel Prensip:</strong> "Karmaşık nesneleri adım adım oluşturmak ve construction process'i product'tan bağımsız hale getirmek."
+            </div>
+
+            <h3 class="subsection-title">GoF Tanımı</h3>
+            <p><em>"Karmaşık bir nesnenin construction'ını representation'ından ayırarak, aynı construction process'in farklı representations oluşturmasına olanak sağlar."</em></p>
+
+            <div class="pattern-flow">
+                <div class="flow-step">Director</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Builder Interface</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Concrete Builder</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-step">Complex Product</div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Neden-Sonuç İlişkisi</h2>
+            
+            <h3 class="subsection-title">Problem: Constructor Hell ve Parameter Explosion</h3>
+            <div class="warning-box">
+                <strong>Sorun:</strong> Karmaşık nesneler oluştururken yaşanan problemler:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Telescoping Constructor Anti-pattern:</strong> Çok sayıda parametre ile overloaded constructor'lar</li>
+                    <li><strong>Parameter Order Confusion:</strong> Aynı tip parametrelerin karışması (String, String, String...)</li>
+                    <li><strong>Optional Parameters Chaos:</strong> İsteğe bağlı parametreler için null geçme zorunluluğu</li>
+                    <li><strong>Immutable Object Challenge:</strong> Immutable nesneler için setter kullanımının mümkün olmaması</li>
+                    <li><strong>Validation Complexity:</strong> Constructor'da karmaşık validation logic'inin bulunması</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+<pre>
+<span class="comment">// Anti-pattern: Constructor Hell</span>
+<span class="keyword">public class</span> <span class="class-name">RestApiConfiguration</span> {
+    <span class="keyword">public</span> <span class="method">RestApiConfiguration</span>(
+        <span class="class-name">String</span> baseUrl, 
+        <span class="class-name">String</span> apiVersion, 
+        <span class="keyword">int</span> timeout, 
+        <span class="keyword">int</span> retryCount,
+        <span class="keyword">boolean</span> enableSsl, 
+        <span class="class-name">String</span> authToken, 
+        <span class="class-name">String</span> userAgent,
+        <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; headers, 
+        <span class="class-name">ConnectionPool</span> connectionPool,
+        <span class="class-name">RateLimiter</span> rateLimiter) {
+        <span class="comment">// 10+ parameter constructor - maintainability nightmare!</span>
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Çözüm: Builder Pattern ile Elegant Construction</h3>
+            <div class="highlight-box">
+                <strong>Sonuç:</strong> Builder Pattern kullanımı ile:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li><strong>Fluent API:</strong> Method chaining ile okunabilir kod yazımı</li>
+                    <li><strong>Parameter Validation:</strong> Build-time'da comprehensive validation</li>
+                    <li><strong>Immutability Support:</strong> Immutable nesneler için ideal çözüm</li>
+                    <li><strong>Optional Parameters:</strong> Sadece gerekli alanları set etme esnekliği</li>
+                    <li><strong>Type Safety:</strong> Compile-time'da tip güvenliği</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Spring Boot 3.5 Implementation</h2>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('domain')">Domain Model</button>
+                    <button class="tab-button" onclick="showTab('builder')">Builder Implementation</button>
+                    <button class="tab-button" onclick="showTab('service')">Service Integration</button>
+                    <button class="tab-button" onclick="showTab('controller')">REST Controller</button>
+                </div>
+
+                <div id="domain" class="tab-content active">
+                    <h4>Domain Model ve Builder Interface</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@Entity</span>
+<span class="annotation">@Table</span>(name = <span class="string">"api_configurations"</span>)
+<span class="keyword">public final class</span> <span class="class-name">ApiConfiguration</span> {
+    
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(strategy = <span class="class-name">GenerationType</span>.IDENTITY)
+    <span class="keyword">private final</span> <span class="class-name">Long</span> id;
+    
+    <span class="annotation">@Column</span>(nullable = false)
+    <span class="keyword">private final</span> <span class="class-name">String</span> serviceName;
+    
+    <span class="annotation">@Column</span>(nullable = false)
+    <span class="keyword">private final</span> <span class="class-name">String</span> baseUrl;
+    
+    <span class="keyword">private final</span> <span class="class-name">String</span> apiVersion;
+    <span class="keyword">private final</span> <span class="keyword">int</span> timeoutMs;
+    <span class="keyword">private final</span> <span class="keyword">int</span> retryCount;
+    <span class="keyword">private final</span> <span class="keyword">boolean</span> sslEnabled;
+    <span class="keyword">private final</span> <span class="class-name">String</span> authToken;
+    <span class="keyword">private final</span> <span class="class-name">String</span> userAgent;
+    
+    <span class="annotation">@ElementCollection</span>
+    <span class="annotation">@CollectionTable</span>(name = <span class="string">"api_headers"</span>)
+    <span class="keyword">private final</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; customHeaders;
+    
+    <span class="comment">// Private constructor - only builder can create instances</span>
+    <span class="keyword">private</span> <span class="method">ApiConfiguration</span>(<span class="class-name">Builder</span> builder) {
+        <span class="keyword">this</span>.id = builder.id;
+        <span class="keyword">this</span>.serviceName = <span class="method">requireNonNull</span>(builder.serviceName, <span class="string">"Service name is required"</span>);
+        <span class="keyword">this</span>.baseUrl = <span class="method">requireNonNull</span>(builder.baseUrl, <span class="string">"Base URL is required"</span>);
+        <span class="keyword">this</span>.apiVersion = builder.apiVersion != null ? builder.apiVersion : <span class="string">"v1"</span>;
+        <span class="keyword">this</span>.timeoutMs = builder.timeoutMs > 0 ? builder.timeoutMs : 5000;
+        <span class="keyword">this</span>.retryCount = <span class="class-name">Math</span>.<span class="method">max</span>(0, builder.retryCount);
+        <span class="keyword">this</span>.sslEnabled = builder.sslEnabled;
+        <span class="keyword">this</span>.authToken = builder.authToken;
+        <span class="keyword">this</span>.userAgent = builder.userAgent != null ? builder.userAgent : <span class="string">"Spring-Boot-App/3.5"</span>;
+        <span class="keyword">this</span>.customHeaders = <span class="class-name">Collections</span>.<span class="method">unmodifiableMap</span>(
+            builder.customHeaders != null ? builder.customHeaders : <span class="class-name">Collections</span>.<span class="method">emptyMap</span>()
+        );
+        
+        <span class="method">validate</span>();
+    }
+    
+    <span class="comment">// Static factory method</span>
+    <span class="keyword">public static</span> <span class="class-name">Builder</span> <span class="method">builder</span>() {
+        <span class="keyword">return new</span> <span class="class-name">Builder</span>();
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="builder" class="tab-content">
+                    <h4>Fluent Builder Implementation</h4>
+                    <div class="code-block">
+<pre>
+<span class="keyword">public static class</span> <span class="class-name">Builder</span> {
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    <span class="keyword">private</span> <span class="class-name">String</span> serviceName;
+    <span class="keyword">private</span> <span class="class-name">String</span> baseUrl;
+    <span class="keyword">private</span> <span class="class-name">String</span> apiVersion;
+    <span class="keyword">private</span> <span class="keyword">int</span> timeoutMs = 5000;
+    <span class="keyword">private</span> <span class="keyword">int</span> retryCount = 3;
+    <span class="keyword">private</span> <span class="keyword">boolean</span> sslEnabled = true;
+    <span class="keyword">private</span> <span class="class-name">String</span> authToken;
+    <span class="keyword">private</span> <span class="class-name">String</span> userAgent;
+    <span class="keyword">private</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; customHeaders = <span class="keyword">new</span> <span class="class-name">HashMap</span>&lt;&gt;();
+    
+    <span class="comment">// Fluent interface methods</span>
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">serviceName</span>(<span class="class-name">String</span> serviceName) {
+        <span class="keyword">this</span>.serviceName = serviceName;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">baseUrl</span>(<span class="class-name">String</span> baseUrl) {
+        <span class="keyword">this</span>.baseUrl = baseUrl;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">apiVersion</span>(<span class="class-name">String</span> apiVersion) {
+        <span class="keyword">this</span>.apiVersion = apiVersion;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">timeout</span>(<span class="class-name">Duration</span> timeout) {
+        <span class="keyword">this</span>.timeoutMs = (<span class="keyword">int</span>) timeout.<span class="method">toMillis</span>();
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">retryCount</span>(<span class="keyword">int</span> retryCount) {
+        <span class="keyword">this</span>.retryCount = retryCount;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">enableSsl</span>(<span class="keyword">boolean</span> enabled) {
+        <span class="keyword">this</span>.sslEnabled = enabled;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">authToken</span>(<span class="class-name">String</span> token) {
+        <span class="keyword">this</span>.authToken = token;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">userAgent</span>(<span class="class-name">String</span> userAgent) {
+        <span class="keyword">this</span>.userAgent = userAgent;
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">addHeader</span>(<span class="class-name">String</span> key, <span class="class-name">String</span> value) {
+        <span class="keyword">this</span>.customHeaders.<span class="method">put</span>(key, value);
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">headers</span>(<span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; headers) {
+        <span class="keyword">this</span>.customHeaders.<span class="method">putAll</span>(headers);
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="comment">// Build method with validation</span>
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">build</span>() {
+        <span class="method">validateBuilder</span>();
+        <span class="keyword">return new</span> <span class="class-name">ApiConfiguration</span>(<span class="keyword">this</span>);
+    }
+    
+    <span class="keyword">private</span> <span class="keyword">void</span> <span class="method">validateBuilder</span>() {
+        <span class="keyword">if</span> (serviceName == null || serviceName.<span class="method">isBlank</span>()) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Service name cannot be null or blank"</span>);
+        }
+        
+        <span class="keyword">if</span> (baseUrl == null || !<span class="method">isValidUrl</span>(baseUrl)) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Base URL must be valid"</span>);
+        }
+        
+        <span class="keyword">if</span> (timeoutMs <= 0) {
+            <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Timeout must be positive"</span>);
+        }
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="service" class="tab-content">
+                    <h4>Service Layer ile Integration</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@Service</span>
+<span class="annotation">@Transactional</span>
+<span class="keyword">public class</span> <span class="class-name">ApiConfigurationService</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">ApiConfigurationRepository</span> repository;
+    <span class="keyword">private final</span> <span class="class-name">ConfigurationValidator</span> validator;
+    
+    <span class="keyword">public</span> <span class="method">ApiConfigurationService</span>(
+            <span class="class-name">ApiConfigurationRepository</span> repository,
+            <span class="class-name">ConfigurationValidator</span> validator) {
+        <span class="keyword">this</span>.repository = repository;
+        <span class="keyword">this</span>.validator = validator;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">createConfiguration</span>(<span class="class-name">ConfigurationRequest</span> request) {
+        <span class="comment">// Builder pattern usage in service layer</span>
+        <span class="class-name">ApiConfiguration</span> config = <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(request.<span class="method">getServiceName</span>())
+            .<span class="method">baseUrl</span>(request.<span class="method">getBaseUrl</span>())
+            .<span class="method">apiVersion</span>(request.<span class="method">getApiVersion</span>())
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(request.<span class="method">getTimeoutSeconds</span>()))
+            .<span class="method">retryCount</span>(request.<span class="method">getRetryCount</span>())
+            .<span class="method">enableSsl</span>(request.<span class="method">isEnableSsl</span>())
+            .<span class="method">authToken</span>(request.<span class="method">getAuthToken</span>())
+            .<span class="method">userAgent</span>(<span class="method">buildUserAgent</span>(request))
+            .<span class="method">headers</span>(request.<span class="method">getCustomHeaders</span>())
+            .<span class="method">build</span>();
+            
+        <span class="comment">// Additional business validation</span>
+        validator.<span class="method">validateConfiguration</span>(config);
+        
+        <span class="keyword">return</span> repository.<span class="method">save</span>(config);
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">createDevelopmentConfig</span>(<span class="class-name">String</span> serviceName) {
+        <span class="comment">// Pre-configured builder for development environment</span>
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(serviceName)
+            .<span class="method">baseUrl</span>(<span class="string">"http://localhost:8080"</span>)
+            .<span class="method">apiVersion</span>(<span class="string">"v1"</span>)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(30))
+            .<span class="method">retryCount</span>(1)
+            .<span class="method">enableSsl</span>(false)
+            .<span class="method">addHeader</span>(<span class="string">"Environment"</span>, <span class="string">"Development"</span>)
+            .<span class="method">build</span>();
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">createProductionConfig</span>(<span class="class-name">String</span> serviceName, <span class="class-name">String</span> baseUrl) {
+        <span class="comment">// Production-ready configuration with security defaults</span>
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(serviceName)
+            .<span class="method">baseUrl</span>(baseUrl)
+            .<span class="method">apiVersion</span>(<span class="string">"v2"</span>)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(10))
+            .<span class="method">retryCount</span>(5)
+            .<span class="method">enableSsl</span>(true)
+            .<span class="method">addHeader</span>(<span class="string">"Accept"</span>, <span class="string">"application/json"</span>)
+            .<span class="method">addHeader</span>(<span class="string">"Content-Type"</span>, <span class="string">"application/json"</span>)
+            .<span class="method">build</span>();
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">String</span> <span class="method">buildUserAgent</span>(<span class="class-name">ConfigurationRequest</span> request) {
+        <span class="keyword">return</span> <span class="class-name">String</span>.<span class="method">format</span>(<span class="string">"%s/%s (Spring-Boot/3.5)"</span>, 
+            request.<span class="method">getServiceName</span>(), 
+            request.<span class="method">getApiVersion</span>());
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="controller" class="tab-content">
+                    <h4>REST Controller Implementation</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@RestController</span>
+<span class="annotation">@RequestMapping</span>(<span class="string">"/api/v1/configurations"</span>)
+<span class="annotation">@Validated</span>
+<span class="keyword">public class</span> <span class="class-name">ApiConfigurationController</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">ApiConfigurationService</span> configurationService;
+    
+    <span class="keyword">public</span> <span class="method">ApiConfigurationController</span>(<span class="class-name">ApiConfigurationService</span> configurationService) {
+        <span class="keyword">this</span>.configurationService = configurationService;
+    }
+    
+    <span class="annotation">@PostMapping</span>
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">ApiConfigurationDto</span>&gt; <span class="method">createConfiguration</span>(
+            <span class="annotation">@Valid</span> <span class="annotation">@RequestBody</span> <span class="class-name">ConfigurationRequest</span> request) {
+        
+        <span class="keyword">try</span> {
+            <span class="class-name">ApiConfiguration</span> config = configurationService.<span class="method">createConfiguration</span>(request);
+            <span class="class-name">ApiConfigurationDto</span> dto = <span class="method">mapToDto</span>(config);
+            
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>
+                .<span class="method">status</span>(<span class="class-name">HttpStatus</span>.CREATED)
+                .<span class="method">body</span>(dto);
+                
+        } <span class="keyword">catch</span> (<span class="class-name">IllegalArgumentException</span> e) {
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">badRequest</span>().<span class="method">build</span>();
+        }
+    }
+    
+    <span class="annotation">@PostMapping</span>(<span class="string">"/quick-setup/{environment}"</span>)
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">ApiConfigurationDto</span>&gt; <span class="method">createQuickConfiguration</span>(
+            <span class="annotation">@PathVariable</span> <span class="class-name">String</span> environment,
+            <span class="annotation">@RequestParam</span> <span class="class-name">String</span> serviceName,
+            <span class="annotation">@RequestParam</span>(required = false) <span class="class-name">String</span> baseUrl) {
+        
+        <span class="class-name">ApiConfiguration</span> config = <span class="keyword">switch</span> (environment.<span class="method">toLowerCase</span>()) {
+            <span class="keyword">case</span> <span class="string">"development"</span> -> configurationService.<span class="method">createDevelopmentConfig</span>(serviceName);
+            <span class="keyword">case</span> <span class="string">"production"</span> -> {
+                <span class="keyword">if</span> (baseUrl == null) {
+                    <span class="keyword">yield</span> <span class="class-name">ResponseEntity</span>.<span class="method">badRequest</span>().<span class="method">build</span>();
+                }
+                <span class="keyword">yield</span> configurationService.<span class="method">createProductionConfig</span>(serviceName, baseUrl);
+            }
+            <span class="keyword">default</span> -> <span class="keyword">throw new</span> <span class="class-name">IllegalArgumentException</span>(<span class="string">"Unsupported environment: "</span> + environment);
+        };
+        
+        <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">ok</span>(<span class="method">mapToDto</span>(config));
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">İleri Seviye Builder Patterns</h2>
+            
+            <h3 class="subsection-title">Director Pattern Integration</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Director class for complex construction scenarios</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ApiConfigurationDirector</span> {
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">buildMicroserviceConfig</span>(<span class="class-name">String</span> serviceName, <span class="class-name">String</span> serviceUrl) {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(serviceName)
+            .<span class="method">baseUrl</span>(serviceUrl)
+            .<span class="method">apiVersion</span>(<span class="string">"v2"</span>)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(5))
+            .<span class="method">retryCount</span>(3)
+            .<span class="method">enableSsl</span>(true)
+            .<span class="method">addHeader</span>(<span class="string">"Service-Type"</span>, <span class="string">"Microservice"</span>)
+            .<span class="method">addHeader</span>(<span class="string">"Circuit-Breaker"</span>, <span class="string">"Enabled"</span>)
+            .<span class="method">userAgent</span>(<span class="string">"Microservice-Gateway/1.0"</span>)
+            .<span class="method">build</span>();
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">buildExternalApiConfig</span>(<span class="class-name">String</span> apiName, <span class="class-name">String</span> apiUrl, <span class="class-name">String</span> apiKey) {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(apiName)
+            .<span class="method">baseUrl</span>(apiUrl)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(15))
+            .<span class="method">retryCount</span>(5)
+            .<span class="method">enableSsl</span>(true)
+            .<span class="method">authToken</span>(apiKey)
+            .<span class="method">addHeader</span>(<span class="string">"API-Version"</span>, <span class="string">"2024-08"</span>)
+            .<span class="method">addHeader</span>(<span class="string">"Accept"</span>, <span class="string">"application/json"</span>)
+            .<span class="method">userAgent</span>(<span class="string">"External-API-Client/2.0"</span>)
+            .<span class="method">build</span>();
+    }
+}
+</pre>
+                    </div>
+
+            <h3 class="subsection-title">Stepwise Builder Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Type-safe stepwise builder implementation</span>
+<span class="keyword">public class</span> <span class="class-name">TypeSafeApiConfigurationBuilder</span> {
+    
+    <span class="keyword">public static</span> <span class="class-name">ServiceNameStep</span> <span class="method">newBuilder</span>() {
+        <span class="keyword">return new</span> <span class="class-name">Steps</span>();
+    }
+    
+    <span class="keyword">public interface</span> <span class="class-name">ServiceNameStep</span> {
+        <span class="class-name">BaseUrlStep</span> <span class="method">serviceName</span>(<span class="class-name">String</span> serviceName);
+    }
+    
+    <span class="keyword">public interface</span> <span class="class-name">BaseUrlStep</span> {
+        <span class="class-name">OptionalStep</span> <span class="method">baseUrl</span>(<span class="class-name">String</span> baseUrl);
+    }
+    
+    <span class="keyword">public interface</span> <span class="class-name">OptionalStep</span> {
+        <span class="class-name">OptionalStep</span> <span class="method">apiVersion</span>(<span class="class-name">String</span> version);
+        <span class="class-name">OptionalStep</span> <span class="method">timeout</span>(<span class="class-name">Duration</span> timeout);
+        <span class="class-name">OptionalStep</span> <span class="method">retryCount</span>(<span class="keyword">int</span> count);
+        <span class="class-name">ApiConfiguration</span> <span class="method">build</span>();
+    }
+    
+    <span class="keyword">private static class</span> <span class="class-name">Steps</span> <span class="keyword">implements</span> <span class="class-name">ServiceNameStep</span>, <span class="class-name">BaseUrlStep</span>, <span class="class-name">OptionalStep</span> {
+        <span class="keyword">private</span> <span class="class-name">String</span> serviceName;
+        <span class="keyword">private</span> <span class="class-name">String</span> baseUrl;
+        <span class="keyword">private</span> <span class="class-name">String</span> apiVersion = <span class="string">"v1"</span>;
+        <span class="keyword">private</span> <span class="class-name">Duration</span> timeout = <span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(5);
+        <span class="keyword">private</span> <span class="keyword">int</span> retryCount = 3;
+        
+        <span class="annotation">@Override</span>
+        <span class="keyword">public</span> <span class="class-name">BaseUrlStep</span> <span class="method">serviceName</span>(<span class="class-name">String</span> serviceName) {
+            <span class="keyword">this</span>.serviceName = serviceName;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+        
+        <span class="annotation">@Override</span>
+        <span class="keyword">public</span> <span class="class-name">OptionalStep</span> <span class="method">baseUrl</span>(<span class="class-name">String</span> baseUrl) {
+            <span class="keyword">this</span>.baseUrl = baseUrl;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+        
+        <span class="comment">// Implementation of optional methods...</span>
+        
+        <span class="annotation">@Override</span>
+        <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">build</span>() {
+            <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">serviceName</span>(serviceName)
+                .<span class="method">baseUrl</span>(baseUrl)
+                .<span class="method">apiVersion</span>(apiVersion)
+                .<span class="method">timeout</span>(timeout)
+                .<span class="method">retryCount</span>(retryCount)
+                .<span class="method">build</span>();
+        }
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Sağladığı Faydalar</h2>
+            
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">🎯 Readable Code Construction</div>
+                    Fluent API sayesinde nesne oluşturma süreci self-documenting hale gelir. Method chaining ile intention açık şekilde belirtilir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🔒 Immutability Guarantee</div>
+                    Builder pattern, immutable nesneler oluşturmak için ideal çözümdür. Thread-safety ve defensive programming prensiplerine uygun.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🎭 Flexible Object Creation</div>
+                    Optional parametreler için elegant çözüm. Sadece gerekli alanları set etme esnekliği sağlar.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🛡️ Build-time Validation</div>
+                    Complex validation logic'i build() method'unda centralize edilir. Early failure detection sağlar.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🔄 Consistent Object State</div>
+                    Builder, nesnenin valid state'de oluşmasını garanti eder. Partially constructed objects problemi ortadan kalkar.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🧪 Enhanced Testability</div>
+                    Test senaryoları için farklı configuration'lar kolayca oluşturulabilir. Test data builder pattern ile integrate olur.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Spring Boot Integration Best Practices</h2>
+            
+            <h3 class="subsection-title">Configuration Properties Integration</h3>
+            <div class="code-block">
+<pre>
+<span class="annotation">@ConfigurationProperties</span>(prefix = <span class="string">"app.api"</span>)
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ApiConfigurationProperties</span> {
+    
+    <span class="keyword">private</span> <span class="class-name">String</span> defaultVersion = <span class="string">"v1"</span>;
+    <span class="keyword">private</span> <span class="keyword">int</span> defaultTimeout = 5000;
+    <span class="keyword">private</span> <span class="keyword">boolean</span> sslEnabled = true;
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">createDefaultConfiguration</span>(<span class="class-name">String</span> serviceName, <span class="class-name">String</span> baseUrl) {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(serviceName)
+            .<span class="method">baseUrl</span>(baseUrl)
+            .<span class="method">apiVersion</span>(defaultVersion)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofMillis</span>(defaultTimeout))
+            .<span class="method">enableSsl</span>(sslEnabled)
+            .<span class="method">build</span>();
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Validation Integration</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Custom validation with Builder pattern</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ConfigurationValidator</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">Validator</span> validator;
+    
+    <span class="keyword">public</span> <span class="method">ConfigurationValidator</span>(<span class="class-name">Validator</span> validator) {
+        <span class="keyword">this</span>.validator = validator;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">validateConfiguration</span>(<span class="class-name">ApiConfiguration</span> config) {
+        <span class="class-name">Set</span>&lt;<span class="class-name">ConstraintViolation</span>&lt;<span class="class-name">ApiConfiguration</span>&gt;&gt; violations = 
+            validator.<span class="method">validate</span>(config);
+            
+        <span class="keyword">if</span> (!violations.<span class="method">isEmpty</span>()) {
+            <span class="class-name">String</span> errorMessage = violations.<span class="method">stream</span>()
+                .<span class="method">map</span>(<span class="class-name">ConstraintViolation</span>::<span class="method">getMessage</span>)
+                .<span class="method">collect</span>(<span class="class-name">Collectors</span>.<span class="method">joining</span>(<span class="string">", "</span>));
+            <span class="keyword">throw new</span> <span class="class-name">ValidationException</span>(<span class="string">"Configuration validation failed: "</span> + errorMessage);
+        }
+        
+        <span class="comment">// Custom business logic validation</span>
+        <span class="keyword">if</span> (config.<span class="method">isSslEnabled</span>() && !config.<span class="method">getBaseUrl</span>().<span class="method">startsWith</span>(<span class="string">"https"</span>)) {
+            <span class="keyword">throw new</span> <span class="class-name">ValidationException</span>(<span class="string">"SSL enabled but URL is not HTTPS"</span>);
+        }
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Performance ve Memory Considerations</h2>
+            
+            <h3 class="subsection-title">Object Pooling ile Builder Optimization</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Pooled builder for high-throughput scenarios</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">PooledApiConfigurationBuilder</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">ObjectPool</span>&lt;<span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span>&gt; builderPool;
+    
+    <span class="keyword">public</span> <span class="method">PooledApiConfigurationBuilder</span>() {
+        <span class="keyword">this</span>.builderPool = <span class="keyword">new</span> <span class="class-name">GenericObjectPool</span>&lt;&gt;(
+            <span class="keyword">new</span> <span class="class-name">BasePooledObjectFactory</span>&lt;<span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span>&gt;() {
+                <span class="annotation">@Override</span>
+                <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span> <span class="method">create</span>() {
+                    <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>();
+                }
+                
+                <span class="annotation">@Override</span>
+                <span class="keyword">public</span> <span class="class-name">PooledObject</span>&lt;<span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span>&gt; <span class="method">wrap</span>(<span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span> builder) {
+                    <span class="keyword">return new</span> <span class="class-name">DefaultPooledObject</span>&lt;&gt;(builder);
+                }
+            });
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">buildWithPool</span>(<span class="class-name">ConfigurationRequest</span> request) <span class="keyword">throws</span> <span class="class-name">Exception</span> {
+        <span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span> builder = builderPool.<span class="method">borrowObject</span>();
+        <span class="keyword">try</span> {
+            <span class="keyword">return</span> builder
+                .<span class="method">serviceName</span>(request.<span class="method">getServiceName</span>())
+                .<span class="method">baseUrl</span>(request.<span class="method">getBaseUrl</span>())
+                .<span class="method">build</span>();
+        } <span class="keyword">finally</span> {
+            builderPool.<span class="method">returnObject</span>(builder);
+        }
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Builder Caching Strategy</h3>
+            <div class="highlight-box">
+                <strong>Memory Optimization:</strong> Frequently used configuration patterns için builder instance'ları cache'lenebilir. Özellikle microservice communication'da aynı configuration'ların tekrar tekrar oluşturulması durumunda performance gain sağlar.
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Alternativeler ve Karşılaştırma</h2>
+            
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Pattern</th>
+                        <th>Use Case</th>
+                        <th>Complexity</th>
+                        <th>Performance</th>
+                        <th>Spring Boot Uyumu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Builder Pattern</strong></td>
+                        <td>Karmaşık, immutable nesneler</td>
+                        <td>Orta</td>
+                        <td>İyi</td>
+                        <td>Mükemmel</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Factory Method</strong></td>
+                        <td>Simple object creation</td>
+                        <td>Düşük</td>
+                        <td>Çok İyi</td>
+                        <td>İyi</td>
+                    </tr>
+                    <tr>
+                        <td><strong>@ConfigurationProperties</strong></td>
+                        <td>External configuration</td>
+                        <td>Düşük</td>
+                        <td>Çok İyi</td>
+                        <td>Native</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Record Classes</strong></td>
+                        <td>Simple immutable data</td>
+                        <td>Çok Düşük</td>
+                        <td>Mükemmel</td>
+                        <td>İyi</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box">
+                    <h4 style="color: #10b981; margin-bottom: 1rem;">✅ Builder Pattern Avantajları</h4>
+                    <ul>
+                        <li><strong>Code Readability:</strong> Self-documenting object construction</li>
+                        <li><strong>Parameter Flexibility:</strong> Optional parameters için elegant çözüm</li>
+                        <li><strong>Immutability Support:</strong> Thread-safe object creation</li>
+                        <li><strong>Validation Control:</strong> Build-time comprehensive validation</li>
+                        <li><strong>Extensibility:</strong> Yeni fields eklenmesi backward-compatible</li>
+                    </ul>
+                </div>
+                
+                <div class="cons-box">
+                    <h4 style="color: #ef4444; margin-bottom: 1rem;">⚠️ Dikkat Edilmesi Gerekenler</h4>
+                    <ul>
+                        <li><strong>Code Verbosity:</strong> Simple nesneler için overkill olabilir</li>
+                        <li><strong>Memory Overhead:</strong> Builder instance'ı additional memory kullanır</li>
+                        <li><strong>Complexity:</strong> Team'in pattern'i anlaması gerekir</li>
+                        <li><strong>Performance:</strong> Simple constructor'a göre minimal overhead</li>
+                        <li><strong>Maintenance:</strong> Builder ve domain class sync'de tutulmalı</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Real-World Integration Scenarios</h2>
+            
+            <h3 class="subsection-title">JPA Entity Builder Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="annotation">@Entity</span>
+<span class="keyword">public class</span> <span class="class-name">User</span> {
+    
+    <span class="annotation">@Id</span>
+    <span class="annotation">@GeneratedValue</span>(strategy = <span class="class-name">GenerationType</span>.IDENTITY)
+    <span class="keyword">private</span> <span class="class-name">Long</span> id;
+    
+    <span class="keyword">private</span> <span class="class-name">String</span> username;
+    <span class="keyword">private</span> <span class="class-name">String</span> email;
+    <span class="keyword">private</span> <span class="class-name">String</span> firstName;
+    <span class="keyword">private</span> <span class="class-name">String</span> lastName;
+    
+    <span class="annotation">@Enumerated</span>(<span class="class-name">EnumType</span>.STRING)
+    <span class="keyword">private</span> <span class="class-name">UserRole</span> role;
+    
+    <span class="annotation">@CreationTimestamp</span>
+    <span class="keyword">private</span> <span class="class-name">LocalDateTime</span> createdAt;
+    
+    <span class="comment">// Builder integration with JPA</span>
+    <span class="keyword">public static</span> <span class="class-name">User</span> <span class="method">fromRequest</span>(<span class="class-name">UserRegistrationRequest</span> request) {
+        <span class="keyword">return</span> <span class="class-name">User</span>.<span class="method">builder</span>()
+            .<span class="method">username</span>(request.<span class="method">getUsername</span>())
+            .<span class="method">email</span>(request.<span class="method">getEmail</span>())
+            .<span class="method">firstName</span>(request.<span class="method">getFirstName</span>())
+            .<span class="method">lastName</span>(request.<span class="method">getLastName</span>())
+            .<span class="method">role</span>(<span class="class-name">UserRole</span>.USER)
+            .<span class="method">build</span>();
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">DTO Builder Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Response DTO with builder pattern</span>
+<span class="keyword">public record</span> <span class="class-name">ApiConfigurationResponse</span>(
+    <span class="class-name">Long</span> id,
+    <span class="class-name">String</span> serviceName,
+    <span class="class-name">String</span> baseUrl,
+    <span class="class-name">String</span> apiVersion,
+    <span class="keyword">int</span> timeoutMs,
+    <span class="keyword">boolean</span> sslEnabled,
+    <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; headers
+) {
+    
+    <span class="keyword">public static</span> <span class="class-name">Builder</span> <span class="method">builder</span>() {
+        <span class="keyword">return new</span> <span class="class-name">Builder</span>();
+    }
+    
+    <span class="keyword">public static class</span> <span class="class-name">Builder</span> {
+        <span class="keyword">private</span> <span class="class-name">Long</span> id;
+        <span class="keyword">private</span> <span class="class-name">String</span> serviceName;
+        <span class="keyword">private</span> <span class="class-name">String</span> baseUrl;
+        <span class="keyword">private</span> <span class="class-name">String</span> apiVersion;
+        <span class="keyword">private</span> <span class="keyword">int</span> timeoutMs;
+        <span class="keyword">private</span> <span class="keyword">boolean</span> sslEnabled;
+        <span class="keyword">private</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">String</span>&gt; headers = <span class="keyword">new</span> <span class="class-name">HashMap</span>&lt;&gt;();
+        
+        <span class="keyword">public</span> <span class="class-name">Builder</span> <span class="method">from</span>(<span class="class-name">ApiConfiguration</span> config) {
+            <span class="keyword">this</span>.id = config.<span class="method">getId</span>();
+            <span class="keyword">this</span>.serviceName = config.<span class="method">getServiceName</span>();
+            <span class="keyword">this</span>.baseUrl = config.<span class="method">getBaseUrl</span>();
+            <span class="keyword">this</span>.apiVersion = config.<span class="method">getApiVersion</span>();
+            <span class="keyword">this</span>.timeoutMs = config.<span class="method">getTimeoutMs</span>();
+            <span class="keyword">this</span>.sslEnabled = config.<span class="method">isSslEnabled</span>();
+            <span class="keyword">this</span>.headers = <span class="keyword">new</span> <span class="class-name">HashMap</span>&lt;&gt;(config.<span class="method">getCustomHeaders</span>());
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+        
+        <span class="comment">// Fluent methods...</span>
+        
+        <span class="keyword">public</span> <span class="class-name">ApiConfigurationResponse</span> <span class="method">build</span>() {
+            <span class="keyword">return new</span> <span class="class-name">ApiConfigurationResponse</span>(id, serviceName, baseUrl, 
+                apiVersion, timeoutMs, sslEnabled, <span class="class-name">Map</span>.<span class="method">copyOf</span>(headers));
+        }
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Async Builder Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Asynchronous configuration building</span>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">AsyncConfigurationService</span> {
+    
+    <span class="annotation">@Async</span>(<span class="string">"configExecutor"</span>)
+    <span class="keyword">public</span> <span class="class-name">CompletableFuture</span>&lt;<span class="class-name">ApiConfiguration</span>&gt; <span class="method">buildConfigurationAsync</span>(
+            <span class="class-name">ConfigurationRequest</span> request) {
+        
+        <span class="keyword">return</span> <span class="class-name">CompletableFuture</span>.<span class="method">supplyAsync</span>(() -> {
+            <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">serviceName</span>(request.<span class="method">getServiceName</span>())
+                .<span class="method">baseUrl</span>(<span class="method">validateAndNormalizeUrl</span>(request.<span class="method">getBaseUrl</span>()))
+                .<span class="method">apiVersion</span>(request.<span class="method">getApiVersion</span>())
+                .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(request.<span class="method">getTimeoutSeconds</span>()))
+                .<span class="method">retryCount</span>(request.<span class="method">getRetryCount</span>())
+                .<span class="method">enableSsl</span>(request.<span class="method">isEnableSsl</span>())
+                .<span class="method">build</span>();
+        });
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Advanced Builder Techniques</h2>
+            
+            <h3 class="subsection-title">Generic Builder Framework</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Generic builder interface for reusability</span>
+<span class="keyword">public interface</span> <span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt; {
+    <span class="class-name">T</span> <span class="method">build</span>();
+    
+    <span class="keyword">default</span> <span class="class-name">T</span> <span class="method">buildAndValidate</span>() {
+        <span class="class-name">T</span> result = <span class="method">build</span>();
+        <span class="method">validate</span>(result);
+        <span class="keyword">return</span> result;
+    }
+    
+    <span class="keyword">default</span> <span class="keyword">void</span> <span class="method">validate</span>(<span class="class-name">T</span> object) {
+        <span class="comment">// Override in implementations for custom validation</span>
+    }
+}
+
+<span class="comment">// Conditional builder with lambda support</span>
+<span class="keyword">public static class</span> <span class="class-name">ConditionalBuilder</span>&lt;<span class="class-name">T</span>&gt; <span class="keyword">implements</span> <span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt; {
+    
+    <span class="keyword">private final</span> <span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt; builder;
+    
+    <span class="keyword">public</span> <span class="method">ConditionalBuilder</span>(<span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt; builder) {
+        <span class="keyword">this</span>.builder = builder;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ConditionalBuilder</span>&lt;<span class="class-name">T</span>&gt; <span class="method">when</span>(<span class="keyword">boolean</span> condition, 
+            <span class="class-name">Function</span>&lt;<span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt;, <span class="class-name">FluentBuilder</span>&lt;<span class="class-name">T</span>&gt;&gt; configurator) {
+        <span class="keyword">if</span> (condition) {
+            <span class="keyword">return new</span> <span class="class-name">ConditionalBuilder</span>&lt;&gt;(configurator.<span class="method">apply</span>(builder));
+        }
+        <span class="keyword">return</span> <span class="keyword">this</span>;
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">T</span> <span class="method">build</span>() {
+        <span class="keyword">return</span> builder.<span class="method">build</span>();
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Builder Pattern ile Test Data Generation</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Test data builder for comprehensive testing</span>
+<span class="annotation">@TestComponent</span>
+<span class="keyword">public class</span> <span class="class-name">ApiConfigurationTestDataBuilder</span> {
+    
+    <span class="keyword">public static</span> <span class="class-name">ApiConfiguration</span> <span class="method">aValidConfiguration</span>() {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(<span class="string">"test-service"</span>)
+            .<span class="method">baseUrl</span>(<span class="string">"https://api.example.com"</span>)
+            .<span class="method">apiVersion</span>(<span class="string">"v1"</span>)
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(5))
+            .<span class="method">retryCount</span>(3)
+            .<span class="method">enableSsl</span>(true)
+            .<span class="method">build</span>();
+    }
+    
+    <span class="keyword">public static</span> <span class="class-name">ApiConfiguration</span> <span class="method">aConfigurationWithCustomHeaders</span>() {
+        <span class="keyword">return</span> <span class="method">aValidConfiguration</span>().<span class="method">toBuilder</span>()
+            .<span class="method">addHeader</span>(<span class="string">"X-Test-Header"</span>, <span class="string">"test-value"</span>)
+            .<span class="method">addHeader</span>(<span class="string">"X-Request-ID"</span>, <span class="class-name">UUID</span>.<span class="method">randomUUID</span>().<span class="method">toString</span>())
+            .<span class="method">build</span>();
+    }
+    
+    <span class="keyword">public static</span> <span class="class-name">ApiConfiguration</span> <span class="method">anInvalidConfiguration</span>() {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(<span class="string">""</span>) <span class="comment">// Invalid: empty service name</span>
+            .<span class="method">baseUrl</span>(<span class="string">"invalid-url"</span>) <span class="comment">// Invalid: malformed URL</span>
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(-1)) <span class="comment">// Invalid: negative timeout</span>
+            .<span class="method">build</span>();
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Monitoring ve Observability</h2>
+            
+            <h3 class="subsection-title">Builder Metrics Collection</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Metrics-aware builder implementation</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">MetricsAwareConfigurationBuilder</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">MeterRegistry</span> meterRegistry;
+    <span class="keyword">private final</span> <span class="class-name">Counter</span> buildCounter;
+    <span class="keyword">private final</span> <span class="class-name">Timer</span> buildTimer;
+    
+    <span class="keyword">public</span> <span class="method">MetricsAwareConfigurationBuilder</span>(<span class="class-name">MeterRegistry</span> meterRegistry) {
+        <span class="keyword">this</span>.meterRegistry = meterRegistry;
+        <span class="keyword">this</span>.buildCounter = <span class="class-name">Counter</span>.<span class="method">builder</span>(<span class="string">"api_configuration_builds_total"</span>)
+            .<span class="method">description</span>(<span class="string">"Total number of API configurations built"</span>)
+            .<span class="method">register</span>(meterRegistry);
+        <span class="keyword">this</span>.buildTimer = <span class="class-name">Timer</span>.<span class="method">builder</span>(<span class="string">"api_configuration_build_duration"</span>)
+            .<span class="method">description</span>(<span class="string">"Time taken to build API configurations"</span>)
+            .<span class="method">register</span>(meterRegistry);
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span> <span class="method">buildWithMetrics</span>(<span class="class-name">ConfigurationRequest</span> request) {
+        <span class="keyword">return</span> buildTimer.<span class="method">recordCallable</span>(() -> {
+            buildCounter.<span class="method">increment</span>(<span class="class-name">Tags</span>.<span class="method">of</span>(<span class="string">"service"</span>, request.<span class="method">getServiceName</span>()));
+            
+            <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">serviceName</span>(request.<span class="method">getServiceName</span>())
+                .<span class="method">baseUrl</span>(request.<span class="method">getBaseUrl</span>())
+                .<span class="method">build</span>();
+        });
+    }
+}
+</pre>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Builder Pattern Variations</h2>
+            
+            <h3 class="subsection-title">Hierarchical Builder Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Hierarchical builder for complex nested structures</span>
+<span class="keyword">public class</span> <span class="class-name">RestClientConfiguration</span> {
+    
+    <span class="keyword">public static</span> <span class="class-name">RestClientBuilder</span> <span class="method">client</span>() {
+        <span class="keyword">return new</span> <span class="class-name">RestClientBuilder</span>();
+    }
+    
+    <span class="keyword">public static class</span> <span class="class-name">RestClientBuilder</span> {
+        <span class="keyword">private</span> <span class="class-name">String</span> clientName;
+        
+        <span class="keyword">public</span> <span class="class-name">SecurityBuilder</span> <span class="method">named</span>(<span class="class-name">String</span> clientName) {
+            <span class="keyword">this</span>.clientName = clientName;
+            <span class="keyword">return new</span> <span class="class-name">SecurityBuilder</span>(<span class="keyword">this</span>);
+        }
+    }
+    
+    <span class="keyword">public static class</span> <span class="class-name">SecurityBuilder</span> {
+        <span class="keyword">private final</span> <span class="class-name">RestClientBuilder</span> parent;
+        <span class="keyword">private</span> <span class="class-name">SecurityConfig</span> securityConfig;
+        
+        <span class="keyword">public</span> <span class="method">SecurityBuilder</span>(<span class="class-name">RestClientBuilder</span> parent) {
+            <span class="keyword">this</span>.parent = parent;
+        }
+        
+        <span class="keyword">public</span> <span class="class-name">SecurityBuilder</span> <span class="method">oauth2</span>(<span class="class-name">String</span> clientId, <span class="class-name">String</span> clientSecret) {
+            <span class="keyword">this</span>.securityConfig = <span class="class-name">OAuth2Config</span>.<span class="method">builder</span>()
+                .<span class="method">clientId</span>(clientId)
+                .<span class="method">clientSecret</span>(clientSecret)
+                .<span class="method">build</span>();
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+        
+        <span class="keyword">public</span> <span class="class-name">ConnectionBuilder</span> <span class="method">connection</span>() {
+            <span class="keyword">return new</span> <span class="class-name">ConnectionBuilder</span>(<span class="keyword">this</span>);
+        }
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Prototype Pattern ile Integration</h3>
+            <div class="highlight-box">
+                <strong>Hybrid Approach:</strong> Builder pattern'i Prototype pattern ile kombine ederek, existing configuration'ları base alarak yeni configuration'lar oluşturma imkanı sağlanabilir. Bu yaklaşım özellikle similar configuration'lar için code duplication'ı azaltır.
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Enterprise Implementation Guidelines</h2>
+            
+            <h3 class="subsection-title">Builder Factory Pattern</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Factory for different builder types</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ConfigurationBuilderFactory</span> {
+    
+    <span class="keyword">public</span> <span class="class-name">ApiConfiguration</span>.<span class="class-name">Builder</span> <span class="method">forEnvironment</span>(<span class="class-name">Environment</span> env) {
+        <span class="keyword">return switch</span> (env) {
+            <span class="keyword">case</span> DEVELOPMENT -> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(30))
+                .<span class="method">retryCount</span>(1)
+                .<span class="method">enableSsl</span>(false);
+                
+            <span class="keyword">case</span> STAGING -> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(15))
+                .<span class="method">retryCount</span>(3)
+                .<span class="method">enableSsl</span>(true);
+                
+            <span class="keyword">case</span> PRODUCTION -> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+                .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(5))
+                .<span class="method">retryCount</span>(5)
+                .<span class="method">enableSsl</span>(true)
+                .<span class="method">addHeader</span>(<span class="string">"X-Environment"</span>, <span class="string">"production"</span>);
+        };
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Configuration Drift Detection</h3>
+            <div class="warning-box">
+                <strong>Enterprise Concern:</strong> Builder pattern kullanırken configuration drift'i detect etmek için checksum mekanizması implement edilebilir. Bu sayede configuration'ların time içinde nasıl değiştiği track edilebilir.
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Best Practices ve Anti-Patterns</h2>
+            
+            <h3 class="subsection-title">✅ Best Practices</h3>
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">Immutable Builder State</div>
+                    Builder'ın kendisi mutable olsa da, build edilen nesne immutable olmalı. Thread-safety için kritik.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Comprehensive Validation</div>
+                    Build method'unda tüm business rules validate edilmeli. Fail-fast principle uygulanmalı.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Method Chaining Consistency</div>
+                    Tüm builder method'lar this return etmeli. Fluent interface consistency'si korunmalı.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Null Safety</div>
+                    Builder method'ları null values'a karşı defensive olmalı. Meaningful defaults sağlanmalı.
+                </div>
+            </div>
+
+            <h3 class="subsection-title">❌ Anti-Patterns ve Pitfall'ler</h3>
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">Mutable Builder Reuse</div>
+                    Builder instance'ını multiple object creation için reuse etmek. State pollution yaratır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Validation Bypass</div>
+                    Build method'unu bypass ederek invalid state'de nesne oluşturmak. Constructor'ı private yaparak önlenir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Over-Engineering</div>
+                    Simple nesneler için builder pattern kullanmak. 3-4 parameterdan az için overkill.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">Inconsistent API</div>
+                    Builder method naming'de consistency olmaması. withX(), setX(), X() karışımı kullanmak.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Production Ready Implementation</h2>
+            
+            <div class="code-block">
+<pre>
+<span class="comment">// Complete production-ready example</span>
+<span class="annotation">@RestController</span>
+<span class="annotation">@RequestMapping</span>(<span class="string">"/api/v1/configurations"</span>)
+<span class="keyword">public class</span> <span class="class-name">ProductionConfigurationController</span> {
+    
+    <span class="annotation">@PostMapping</span>(<span class="string">"/batch"</span>)
+    <span class="annotation">@Transactional</span>
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">List</span>&lt;<span class="class-name">ApiConfigurationResponse</span>&gt;&gt; <span class="method">createBatchConfigurations</span>(
+            <span class="annotation">@Valid</span> <span class="annotation">@RequestBody</span> <span class="class-name">BatchConfigurationRequest</span> request) {
+        
+        <span class="class-name">List</span>&lt;<span class="class-name">ApiConfiguration</span>&gt; configurations = request.<span class="method">getConfigurations</span>()
+            .<span class="method">stream</span>()
+            .<span class="method">map</span>(<span class="keyword">this</span>::<span class="method">buildConfiguration</span>)
+            .<span class="method">collect</span>(<span class="class-name">Collectors</span>.<span class="method">toList</span>());
+            
+        <span class="class-name">List</span>&lt;<span class="class-name">ApiConfiguration</span>&gt; savedConfigs = configurationService.<span class="method">saveAll</span>(configurations);
+        
+        <span class="class-name">List</span>&lt;<span class="class-name">ApiConfigurationResponse</span>&gt; responses = savedConfigs.<span class="method">stream</span>()
+            .<span class="method">map</span>(<span class="keyword">this</span>::<span class="method">mapToResponse</span>)
+            .<span class="method">collect</span>(<span class="class-name">Collectors</span>.<span class="method">toList</span>());
+            
+        <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">ok</span>(responses);
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">ApiConfiguration</span> <span class="method">buildConfiguration</span>(<span class="class-name">ConfigurationRequest</span> request) {
+        <span class="keyword">return</span> <span class="class-name">ApiConfiguration</span>.<span class="method">builder</span>()
+            .<span class="method">serviceName</span>(request.<span class="method">getServiceName</span>())
+            .<span class="method">baseUrl</span>(request.<span class="method">getBaseUrl</span>())
+            .<span class="method">apiVersion</span>(<span class="class-name">Optional</span>.<span class="method">ofNullable</span>(request.<span class="method">getApiVersion</span>()).<span class="method">orElse</span>(<span class="string">"v1"</span>))
+            .<span class="method">timeout</span>(<span class="class-name">Duration</span>.<span class="method">ofSeconds</span>(
+                <span class="class-name">Optional</span>.<span class="method">ofNullable</span>(request.<span class="method">getTimeoutSeconds</span>()).<span class="method">orElse</span>(5)))
+            .<span class="method">retryCount</span>(<span class="class-name">Optional</span>.<span class="method">ofNullable</span>(request.<span class="method">getRetryCount</span>()).<span class="method">orElse</span>(3))
+            .<span class="method">enableSsl</span>(<span class="class-name">Optional</span>.<span class="method">ofNullable</span>(request.<span class="method">getEnableSsl</span>()).<span class="method">orElse</span>(true))
+            .<span class="method">authToken</span>(request.<span class="method">getAuthToken</span>())
+            .<span class="method">headers</span>(<span class="class-name">Optional</span>.<span class="method">ofNullable</span>(request.<span class="method">getCustomHeaders</span>())
+                .<span class="method">orElse</span>(<span class="class-name">Collections</span>.<span class="method">emptyMap</span>()))
+            .<span class="method">build</span>();
+    }
+}
+</pre>
+            </div>
+
+            <div class="highlight-box">
+                <strong>Conclusion:</strong> Builder Pattern, Spring Boot 3.5 ecosystem'inde complex object construction için powerful ve elegant bir çözümdür. Özellikle configuration management, DTO transformation ve test data generation senaryolarında significant value sağlar. Pattern'in correct implementation'ı ile code readability, maintainability ve type safety dramatically improve olur.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add progressive enhancement for card interactions
+        document.querySelectorAll('.content-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 30px 60px rgba(0, 0, 0, 0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 25px 50px rgba(0, 0, 0, 0.15)';
+            });
+        });
+
+        // Add code block copy functionality
+        document.querySelectorAll('.code-block').forEach(block => {
+            const copyButton = document.createElement('button');
+            copyButton.innerHTML = '📋';
+            copyButton.style.cssText = `
+                position: absolute;
+                top: 0.5rem;
+                left: 1rem;
+                background: rgba(255, 255, 255, 0.1);
+                border: none;
+                color: white;
+                padding: 0.3rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+            `;
+            
+            copyButton.addEventListener('click', () => {
+                const text = block.querySelector('pre').textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    copyButton.innerHTML = '✅';
+                    setTimeout(() => copyButton.innerHTML = '📋', 2000);
+                });
+            });
+            
+            copyButton.addEventListener('mouseenter', () => {
+                copyButton.style.opacity = '1';
+            });
+            
+            copyButton.addEventListener('mouseleave', () => {
+                copyButton.style.opacity = '0.7';
+            });
+            
+            block.appendChild(copyButton);
+        });
+    </script>
+</body>
+</html>

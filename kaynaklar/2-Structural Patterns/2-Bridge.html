@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Bridge Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Bridge Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Soyutlama ve Uygulama Arasında Köprü Kurma</p>
+    </header>
+
+    <div class="content">
+        <h2>Bridge Nedir?</h2>
+        <p><strong>Bridge</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, bir nesnenin soyutlamasını (abstraction) ve uygulamasını (implementation) birbirinden ayırarak, her ikisinin de bağımsız olarak geliştirilmesine olanak sağlamaktır. Soyutlama, üst seviye kontrol mantığını temsil ederken, uygulama alt seviye operasyonları sağlar. Bridge, bu iki sınıf hiyerarşisi arasında bir köprü kurar.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Abstraction (Soyutlama):</strong> Üst seviye kontrol mantığını ve istemcinin kullanacağı arayüzü tanımlar. <code>Implementation</code> arayüzüne bir referans tutar ve tüm operasyonları bu referansa devreder.</li>
+            <li><strong>Implementation (Uygulama):</strong> Alt seviye, temel operasyonları tanımlayan arayüzdür. Genellikle <code>Abstraction</code>'ın metotlarıyla birebir eşleşmez.</li>
+            <li><strong>Concrete Abstraction (Somut Soyutlama):</strong> <code>Abstraction</code> arayüzünü implemente eden ve temel mantığı uygulayan sınıflardır.</li>
+            <li><strong>Concrete Implementation (Somut Uygulama):</strong> <code>Implementation</code> arayüzünü implemente eden ve temel operasyonları gerçekten gerçekleştiren sınıflardır.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API geliştirirken, bir kaynağın (resource) farklı varyasyonlarını sunmamız gerekebilir ve bu varyasyonların temel işlevselliği farklı dış servisler veya algoritmalar tarafından sağlanabilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir bildirim sistemi API'si geliştirdiğinizi düşünün. Kullanıcılar, farklı cihaz türlerinde (web, mobil, masaüstü) bildirim alabiliyor. Her bildirim türü, farklı bir gönderim mekanizması (SMS, E-posta, anlık bildirim) kullanıyor. Bu durumda, bildirim türleri (Soyutlama hiyerarşisi) ve gönderim mekanizmaları (Uygulama hiyerarşisi) birbirinden bağımsız olarak genişletilebilir.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Sınıf Patlaması):</strong> Eğer Bridge deseni kullanılmazsa, her bir kombinasyon için ayrı bir sınıf oluşturmamız gerekir:</p>
+
+        <div class="code-block">
+            <pre>
+class WebEmailNotification extends Notification { /* ... */ }
+class WebSMSNotification extends Notification { /* ... */ }
+class MobileEmailNotification extends Notification { /* ... */ }
+class MobileSMSNotification extends Notification { /* ... */ }
+// ... ve daha fazlası
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, sınıf hiyerarşilerinin patlamasına yol açar. Her yeni cihaz tipi veya gönderim mekanizması eklendiğinde, mevcut kodun değiştirilmesi ve yeni kombinasyon sınıflarının oluşturulması gerekir. Örneğin, yeni bir <code>DesktopNotification</code> eklemek için <code>DesktopEmailNotification</code> ve <code>DesktopSMSNotification</code> sınıflarını oluşturmanız gerekir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder ve kodun bakımını son derece zorlaştırır.</p>
+
+        <p><strong>Bridge Çözümü:</strong> Bu sorunu çözmek için, bildirim türlerini (Web, Mobil) ve gönderim mekanizmalarını (E-posta, SMS) iki ayrı hiyerarşide tutabiliriz. Bildirim türü sınıfı, gönderim mekanizmasına bir köprü (referans) kurar ve operasyonları bu köprüye devreder.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Gönderim mekanizmalarını temsil eden bir <code>NotificationSender</code> arayüzü (Uygulama) tanımlayın.</li>
+            <li>E-posta ve SMS gönderimini implemente eden somut sınıflar (<code>EmailSender</code>, <code>SmsSender</code>) oluşturun.</li>
+            <li>Bildirim türlerini temsil eden bir <code>Notification</code> soyut sınıfı (Soyutlama) tanımlayın. Bu sınıf, bir <code>NotificationSender</code> nesnesine referans tutar.</li>
+            <li>Web ve Mobil bildirimleri implemente eden somut sınıflar (<code>WebNotification</code>, <code>MobileNotification</code>) oluşturun. Bu sınıflar, <code>NotificationSender</code> nesnesini constructor'larında alabilir.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Implementation (Uygulama) Arayüzü
+public interface NotificationSender {
+    void send(String message);
+}
+
+// 2. Concrete Implementations
+@Component("emailSender")
+public class EmailSender implements NotificationSender {
+    @Override
+    public void send(String message) {
+        System.out.println("E-posta gönderiliyor: " + message);
+    }
+}
+
+@Component("smsSender")
+public class SmsSender implements NotificationSender {
+    @Override
+    public void send(String message) {
+        System.out.println("SMS gönderiliyor: " + message);
+    }
+}
+
+// 3. Abstraction (Soyutlama)
+public abstract class Notification {
+    protected NotificationSender sender;
+    public Notification(NotificationSender sender) {
+        this.sender = sender;
+    }
+    public abstract void send(String message);
+}
+
+// 4. Concrete Abstractions
+@Component
+@Scope("prototype")
+public class WebNotification extends Notification {
+    @Autowired
+    public WebNotification(@Qualifier("emailSender") NotificationSender sender) {
+        super(sender);
+    }
+    @Override
+    public void send(String message) {
+        System.out.println("Web bildirimi hazırlanıyor...");
+        sender.send(message);
+    }
+}
+
+@Component
+@Scope("prototype")
+public class MobileNotification extends Notification {
+    @Autowired
+    public MobileNotification(@Qualifier("smsSender") NotificationSender sender) {
+        super(sender);
+    }
+    @Override
+    public void send(String message) {
+        System.out.println("Mobil bildirimi hazırlanıyor...");
+        sender.send(message);
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>API Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/notifications")
+public class NotificationController {
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @PostMapping("/send/{type}")
+    public ResponseEntity&lt;?&gt; sendNotification(@PathVariable String type, @RequestBody String message) {
+        Notification notification;
+        if ("web".equals(type)) {
+            notification = applicationContext.getBean(WebNotification.class);
+        } else if ("mobile".equals(type)) {
+            notification = applicationContext.getBean(MobileNotification.class);
+        } else {
+            return ResponseEntity.badRequest().body("Unsupported notification type.");
+        }
+        
+        notification.send(message);
+        return ResponseEntity.ok("Notification sent successfully.");
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Sınıf Patlamasını Önleme:</strong> Her kombinasyon için ayrı bir sınıf oluşturmak yerine, soyutlama (bildirim türü) ve uygulama (gönderim mekanizması) hiyerarşilerini birbirinden ayırır. Bu, sınıf sayısını <code>N + M</code>'ye düşürerek yönetilebilirliği artırır.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir gönderim mekanizması (örneğin, <code>PushNotificationSender</code>) veya yeni bir bildirim türü (örneğin, <code>DesktopNotification</code>) eklemek istediğinizde, mevcut kod tabanına müdahale etmenize gerek kalmaz. Sadece ilgili yeni sınıfı oluşturup, Bridge deseniyle var olan yapıya entegre edebilirsiniz. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Sıkı Bağlılığı Azaltma (Decoupling):</strong> İstemci (<code>Notification</code>), hangi somut gönderim mekanizmasının kullanıldığını bilmek zorunda değildir. Sadece <code>NotificationSender</code> arayüzü ile etkileşime girer. Bu, sistemin daha esnek ve test edilebilir olmasını sağlar.
+            </li>
+            <li>
+                <strong>Kodun Okunabilirliğini ve Bakımını İyileştirme:</strong> İki farklı özellik (tür ve gönderim) için mantık, ayrı ayrı ve net bir şekilde tanımlanmıştır. Bu da her birinin daha kolay anlaşılmasını ve bakımının yapılmasını sağlar.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

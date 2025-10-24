@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Mediator Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Mediator Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Nesneler Arası Bağımlılıkları Yönetme</p>
+    </header>
+
+    <div class="content">
+        <h2>Mediator Nedir?</h2>
+        <p><strong>Mediator</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desen, bir dizi nesne (colleague) arasındaki karmaşık iletişimi merkezileştirmek için kullanılır. Nesnelerin birbirleriyle doğrudan konuşması yerine, tüm iletişim bir arabulucu (mediator) nesnesi üzerinden yapılır. Bu sayede, nesneler arası bağımlılıklar azalır ve sistemin esnekliği artar.</p>
+
+        <p>Temel prensip, bir grup nesnenin (colleague) birbirlerini doğrudan çağırmak yerine, mesajlarını bir mediator nesnesine göndermesidir. Mediator, bu mesajları alır ve hangi nesnenin bu mesaja yanıt vermesi gerektiğine karar vererek ilgili nesneyi bilgilendirir. Bu, karmaşık çoklu bağımlılıkları tek bir noktada toplar ve yönetilebilir hale getirir.</p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API bağlamında, bir isteğin birden fazla farklı servis veya bileşen arasında koordineli bir şekilde işlenmesi gerektiği durumlarla sıkça karşılaşırız. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret uygulamasında, yeni bir siparişin oluşturulması süreci birden fazla servisi içeriyor: <code>Sipariş Servisi (OrderService)</code>, <code>Stok Servisi (StockService)</code>, <code>Kargo Servisi (ShippingService)</code> ve <code>Bildirim Servisi (NotificationService)</code>. Bir sipariş oluşturma isteği geldiğinde, bu servislerin sırayla ve birbirleriyle senkronize olarak çalışması gerekiyor.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Spaghetti Code):</strong> Eğer Mediator deseni kullanılmazsa, bir kontrolcü veya servis sınıfı bu servislerin hepsine direkt olarak bağımlı hale gelir ve onları yönetmek zorunda kalır:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class OrderManager {
+    private final OrderService orderService;
+    private final StockService stockService;
+    private final ShippingService shippingService;
+    private final NotificationService notificationService;
+
+    // constructor injection...
+
+    public void processNewOrder(OrderRequest request) {
+        orderService.createOrder(request);
+        stockService.deductStock(request.getProductId(), request.getQuantity());
+        shippingService.scheduleShipment(request.getOrderId());
+        notificationService.sendConfirmationEmail(request.getCustomerId(), request.getOrderId());
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu monolitik ve sıkı bağlı yaklaşım, <code>OrderManager</code> sınıfının tüm bu servislerin detaylarına hakim olmasını gerektirir. Yeni bir servis (örneğin, <code>PaymentService</code>) eklendiğinde, <code>OrderManager</code> sınıfı değiştirilmek zorunda kalır. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'nin ve **Single Responsibility Principle (Tek Sorumluluk Prensibi)**'nin ihlalidir. Nesneler arası bağımlılıkların karmaşıklığı "spaghetti code" olarak adlandırılan bir yapıya yol açar.</p>
+
+        <p><strong>Mediator Çözümü:</strong> Bu sorunu çözmek için, tüm servisler arasındaki iletişimi yöneten bir arabulucu (mediator) nesnesi oluşturabiliriz. Her servis (colleague), sadece mediator'a bir olay (event) gönderir veya ondan bir işlem yapmasını ister. Servisler birbirlerinin varlığından bile haberdar olmaz.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm iletişimleri yönetecek bir <code>OrderMediator</code> arayüzü tanımlayın.</li>
+            <li>Her bir servis (<code>OrderService</code>, <code>StockService</code>, vb.) birer <code>Colleague</code> (iş arkadaşı) olarak tasarlansın ve bu servisler birbirlerini çağırmak yerine <code>OrderMediator</code>'e referans tutsun.</li>
+            <li><code>OrderMediator</code> arayüzünü implemente eden somut bir <code>OrderMediatorImpl</code> sınıfı oluşturun. Bu sınıf, tüm servislerin referanslarını tutar ve aralarındaki koordinasyonu sağlar.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Mediator Arayüzü
+public interface OrderMediator {
+    void createOrder(OrderRequest request);
+    void notify(Object sender, String event);
+}
+
+// 2. Colleague Servisleri (Örnek: StockService)
+@Service
+public class StockService {
+    private OrderMediator mediator;
+
+    @Autowired
+    public StockService(OrderMediator mediator) {
+        this.mediator = mediator;
+    }
+
+    public void deductStock(Long productId, int quantity) {
+        // Stok düşürme mantığı
+        // ...
+        mediator.notify(this, "stock-deducted"); // Mediator'a bildir
+    }
+}
+
+// 3. Concrete Mediator
+@Service
+public class OrderMediatorImpl implements OrderMediator {
+    private final OrderService orderService;
+    private final StockService stockService;
+    private final ShippingService shippingService;
+    private final NotificationService notificationService;
+
+    @Autowired
+    public OrderMediatorImpl(OrderService orderService, StockService stockService, ShippingService shippingService, NotificationService notificationService) {
+        this.orderService = orderService;
+        this.stockService = stockService;
+        this.shippingService = shippingService;
+        this.notificationService = notificationService;
+        // Servisleri mediator'a tanıtmamız gerekebilir, bu örnekte constructor injection ile yapılıyor
+    }
+
+    @Override
+    public void createOrder(OrderRequest request) {
+        // Sipariş oluşturma akışını buradan yönet
+        orderService.createOrder(request);
+        stockService.deductStock(request.getProductId(), request.getQuantity());
+        shippingService.scheduleShipment(request.getOrderId());
+    }
+    
+    @Override
+    public void notify(Object sender, String event) {
+        // Olaylara göre aksiyon al
+        if (sender instanceof StockService && "stock-deducted".equals(event)) {
+            // Stok düştüğünde bildirim gönder
+            notificationService.sendConfirmationEmail(...);
+        }
+    }
+}
+
+// 4. Kontrolcü
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    private final OrderMediator mediator;
+
+    @Autowired
+    public OrderController(OrderMediator mediator) {
+        this.mediator = mediator;
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;?&gt; createOrder(@RequestBody OrderRequest request) {
+        mediator.createOrder(request);
+        return ResponseEntity.ok("Order creation process started.");
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Bağımlılıkların Gevşetilmesi:</strong> Mediator deseni, nesneler arası sıkı bağımlılıkları ortadan kaldırır. Servisler birbirleri hakkında bilgi sahibi olmak zorunda değildir. Sadece kendi işlerini yapar ve iletişimi mediator'a bırakırlar. Bu, **gevşek bağlılık (Loose Coupling)** sağlar.
+            </li>
+            <li>
+                <strong>Merkezi Kontrol ve Yönetim:</strong> Tüm iletişim ve koordinasyon mantığı tek bir merkezi sınıfta (mediator) toplandığı için, bu mantığın bakımı, anlaşılması ve değiştirilmesi çok daha kolay hale gelir. Yeni bir servis eklemek veya mevcut bir servisin davranışını değiştirmek, sadece mediator sınıfında yapılacak değişikliklerle yönetilebilir.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir işlem adımı (örneğin, ödeme onayı) eklendiğinde, sadece bir <code>PaymentService</code> oluşturulur ve bu servis mediator tarafından çağrılır. Diğer mevcut servislerde hiçbir değişiklik yapılmasına gerek yoktur. Bu, **Open-Closed Principle'a** uyumu destekler.
+            </li>
+            <li>
+                <strong>Tek Sorumluluk Prensibi (Single Responsibility Principle):</strong> Her servis kendi iş mantığından sorumludur (örneğin, stok servisi sadece stokla ilgilenir). Koordinasyon ve iletişim mantığı ise tamamen mediator'a bırakılır. Bu net ayrım, kodun kalitesini artırır.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Interpreter Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Interpreter Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Dil Tanımlama ve Yorumlama Yeteneği</p>
+    </header>
+
+    <div class="content">
+        <h2>Interpreter Nedir?</h2>
+        <p><strong>Interpreter</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desenin temel amacı, bir dilin veya gramerin yorumlanması için bir yol sağlamaktır. Özellikle tekrarlayan ve iyi tanımlanmış bir gramere sahip olan problemler için kullanılır. Desen, bu gramerin her kuralı için bir sınıf tanımlayarak, dilin sözdizimini (syntax) yorumlayan bir nesne yapısı oluşturur.</p>
+
+        <p>Desen, temel olarak bir **soyut sözdizimi ağacı (Abstract Syntax Tree)** yapısı oluşturur. Ağacın her düğümü, dilin bir parçasını temsil eden bir ifade (expression) nesnesidir. Bu ifade nesnelerinin her biri, kendi parçasını yorumlamak için bir <code>interpret()</code> metoduna sahiptir. İstemci, bir cümleyi veya ifadeyi yorumlamak için bu ağacı travers eder.</p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'ye gelen isteklerde, özellikle filtrelenebilir veya dinamik sorgulanabilir veritabanı sorguları gibi durumlarda, istemcinin kendi mantığını veya sorgu dilini tanımlayabilmesi gerekebilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret uygulamasında, kullanıcıların ürünleri karmaşık kriterlere göre filtreleyebileceği bir REST API end-point'i geliştirdiğinizi düşünün. Kullanıcılar, ürünleri "fiyat > 50 AND kategori = 'elektronik'" gibi serbest metin ifadelerle sorgulayabiliyorlar.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (IF-ELSE Hell veya Sorgu Olasılıklarının Patlaması):</strong> Eğer Interpreter deseni kullanılmazsa, her olası kombinasyon için ayrı ayrı kod yazmamız gerekebilir. Bu, genellikle devasa <code>if-else</code> bloklarına veya karmaşık sorgu oluşturma mantığına yol açar:</p>
+
+        <div class="code-block">
+            <pre>
+@GetMapping("/api/products")
+public List&lt;Product&gt; getProducts(@RequestParam String query) {
+    if (query.contains("price >")) {
+        // ... fiyat filtresi
+        if (query.contains("category =")) {
+            // ... fiyat ve kategori filtresi
+        }
+    } else if (query.contains("category =")) {
+        // ... kategori filtresi
+    }
+    // ... Her olası kombinasyon için ayrı kod
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, yeni bir filtreleme kriteri (örneğin, "stok > 10") eklendiğinde mevcut kodun ciddi şekilde değiştirilmesini gerektirir. Bu durum, **açık/kapalı prensibine (Open-Closed Principle)** aykırıdır ve kodun bakımını imkansız hale getirir. Sorgu dilinin karmaşıklığı arttıkça, bu kodun sürdürülebilirliği sıfıra yaklaşır.</p>
+
+        <p><strong>Interpreter Çözümü:</strong> Bu sorunu çözmek için, kullanıcıların sorgu dilini yorumlayacak bir yapı oluşturabiliriz. Her bir sorgu kuralı ("AND", "OR", "büyüktür", "eşittir") için ayrı bir ifade (expression) nesnesi tanımlarız. İstemcinin sorgu metnini (örneğin, "fiyat > 50 AND kategori = 'elektronik'") bir ağaç yapısına çevirir ve bu ağacı yorumlayarak veritabanı sorgusunu oluştururuz.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm ifadeler için ortak bir arayüz (<code>Expression</code>) tanımlayın. Bu arayüz, bir <code>interpret()</code> metodu içerir.</li>
+            <li>Her bir terminal ifade (sorgudaki en küçük parçalar: "fiyat", "50", "kategori") ve non-terminal ifade (birleşim operatörleri: "AND", "OR") için somut sınıflar oluşturun.</li>
+            <li>Bir parser (ayrıştırıcı) sınıfı ile gelen sorgu metnini, bu ifade nesnelerinden oluşan bir soyut sözdizimi ağacına dönüştürün.</li>
+            <li>Yorumlama (interpretation) işlemi için, kök ifadenin <code>interpret()</code> metodunu çağırın. Bu metot, ağacı aşağı doğru gezerek nihai sonucu (örneğin, bir veritabanı sorgusu) oluşturur.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Expression Arayüzü
+public interface Expression {
+    String interpret(Context context);
+}
+
+// 2. Concrete Expressions (Terminal & Non-Terminal)
+public class PriceGreaterThanExpression implements Expression {
+    private final int value;
+    public PriceGreaterThanExpression(int value) { this.value = value; }
+    @Override
+    public String interpret(Context context) {
+        return "price > " + value;
+    }
+}
+
+public class AndExpression implements Expression {
+    private final Expression expr1;
+    private final Expression expr2;
+    public AndExpression(Expression expr1, Expression expr2) { this.expr1 = expr1; this.expr2 = expr2; }
+    @Override
+    public String interpret(Context context) {
+        return "(" + expr1.interpret(context) + " AND " + expr2.interpret(context) + ")";
+    }
+}
+
+// 3. Parser ve Context (basit bir örnek)
+public class QueryParser {
+    public Expression parse(String query) {
+        // Çok basit bir parsing örneği
+        String[] parts = query.split(" AND ");
+        Expression expr1 = new PriceGreaterThanExpression(Integer.parseInt(parts[0].split(" > ")[1].trim()));
+        Expression expr2 = new CategoryEqualsExpression(parts[1].split(" = ")[1].replace("'", "").trim());
+        return new AndExpression(expr1, expr2);
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/products")
+public class ProductController {
+    private final QueryParser queryParser;
+    private final ProductRepository productRepository;
+
+    @Autowired
+    public ProductController(QueryParser queryParser, ProductRepository productRepository) {
+        this.queryParser = queryParser;
+        this.productRepository = productRepository;
+    }
+
+    @GetMapping("/search")
+    public List&lt;Product&gt; searchProducts(@RequestParam String query) {
+        Expression expression = queryParser.parse(query);
+        String jpaQuery = expression.interpret(new Context());
+        
+        // JpaSpecificationExecutor kullanarak dinamik sorgu çalıştırma
+        return productRepository.findAll(CustomSpecifications.byQuery(jpaQuery));
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir dil kuralı veya sorgu operatörü (örneğin, "OR", "küçüktür") eklemek istediğinizde, mevcut ifade sınıflarını veya kontrolcüyü değiştirmeye gerek yoktur. Sadece yeni bir <code>Expression</code> sınıfı oluşturur ve parser'ı bu yeni kuralı tanıyacak şekilde güncellersiniz. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Bakım Kolaylığı:</strong> Karmaşık sorgu oluşturma mantığı, her biri tek bir kuralı temsil eden küçük ve basit sınıflara ayrılır. Bu, her bir bileşenin ayrı ayrı test edilmesini ve bakımının yapılmasını kolaylaştırır.
+            </li>
+            <li>
+                <strong>Performans:</strong> Her ne kadar başlangıçtaki parsing (ayrıştırma) maliyetli olsa da, bu işlem bir kez yapılır. Oluşturulan ağaç, tekrar tekrar yorumlanabilir veya farklı işlemler için kullanılabilir. Bu, tekrarlanan karmaşık sorgu mantığının verimli bir şekilde yönetilmesini sağlar.
+            </li>
+            <li>
+                <strong>Bağımlılıkların Gevşetilmesi:</strong> API'nin iş mantığı, doğrudan veritabanı sorgusu oluşturmak yerine, gelen metin verisini yorumlama sorumluluğunu tamamen Interpreter deseninin yapısına devreder. Bu, iş mantığının çekirdeğini istemciden ve diğer bileşenlerden ayırır.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

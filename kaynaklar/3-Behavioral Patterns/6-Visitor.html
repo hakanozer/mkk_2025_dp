@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Visitor Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Visitor Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Yeni Operasyonları Sınıf Yapısını Değiştirmeden Ekleme</p>
+    </header>
+
+    <div class="content">
+        <h2>Visitor Nedir?</h2>
+        <p><strong>Visitor</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desenin temel amacı, bir nesne yapısı üzerinde (örneğin, bir ağaç veya bileşik nesne hiyerarşisi) yeni operasyonlar eklemek için kullanılır. Bunu, nesne yapısının sınıflarını değiştirmeden yapar. Her yeni operasyon, "ziyaretçi" (visitor) adı verilen ayrı bir sınıf içinde tanımlanır. Bu, nesneler arası sıkı bağımlılıkları azaltır ve sistemin genişletilebilirliğini artırır.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Visitor (Ziyaretçi):</strong> Nesne yapısındaki her bir somut eleman türü için bir <code>visit()</code> metodu tanımlayan bir arayüzdür. Her <code>visit()</code> metodu, belirli bir eleman türüne özgü bir işlemi gerçekleştirir.</li>
+            <li><strong>Element (Eleman):</strong> Ziyaretçinin ziyaret edebileceği nesnelerdir. Bu nesneler, bir <code>accept()</code> metodu içerir. <code>accept()</code> metodu, parametre olarak bir ziyaretçi nesnesi alır ve ziyaretçinin kendisi için özel <code>visit()</code> metodunu çağırır.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API bağlamında, belirli bir kaynak hiyerarşisi (örneğin, bir e-ticaret sepeti, bir dosya sistemi, bir organizasyon şeması) üzerinde farklı işlemler yapmak gerekebilir. Bu işlemler zamanla değişebilir veya yeni işlemler eklenebilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret API'sinde, bir sipariş sepeti farklı ürün türlerini (Elektronik, Kitap, Giyim) içerebiliyor. Sepet üzerindeki her ürün türü için farklı işlemler yapmamız gerekiyor:
+        <ul>
+            <li><strong>Fiyat hesaplama:</strong> Her ürün türü için farklı bir indirim oranı uygulanabilir.</li>
+            <li><strong>Vergi hesaplama:</strong> Her ürün türü için farklı bir vergi oranı uygulanabilir.</li>
+            <li><strong>Nakliye maliyeti hesaplama:</strong> Her ürün türü için farklı bir nakliye ücreti olabilir.</li>
+        </ul>
+        Gelecekte yeni operasyonlar (örneğin, promosyon kodu doğrulama, stok durumu raporlama) eklenebilir.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (IF-ELSE ve Sıkı Bağlılık):</strong> Eğer Visitor deseni kullanılmazsa, sepeti işleyen bir servis, her bir operasyon için iç içe <code>if-else</code> veya <code>switch-case</code> blokları kullanmak zorunda kalır:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class ShoppingCartService {
+    public double calculateTotalCost(List&lt;Product&gt; items) {
+        double total = 0;
+        for (Product item : items) {
+            if (item instanceof Electronics) {
+                total += item.getPrice() * 0.9; // %10 indirim
+            } else if (item instanceof Book) {
+                total += item.getPrice() * 0.95; // %5 indirim
+            } else if (item instanceof Clothing) {
+                total += item.getPrice(); // indirim yok
+            }
+        }
+        return total;
+    }
+    
+    public double calculateTax(List&lt;Product&gt; items) {
+        double tax = 0;
+        for (Product item : items) {
+            if (item instanceof Electronics) {
+                tax += item.getPrice() * 0.18; // %18 KDV
+            } else if (item instanceof Book) {
+                tax += item.getPrice() * 0.08; // %8 KDV
+            }
+            // ... her yeni vergi türü için yeni if-else
+        }
+        return tax;
+    }
+    // ... her yeni operasyon için yeni metot
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, birincisi **kod tekrarına (code duplication)** neden olur. Her yeni operasyon (vergi hesaplama, nakliye maliyeti) için aynı döngü tekrar tekrar yazılır. İkincisi, yeni bir ürün türü (örneğin, <code>Toy</code>) veya yeni bir operasyon eklendiğinde, mevcut <code>ShoppingCartService</code> sınıfının değiştirilmesini gerektirir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder. Ayrıca, **Tek Sorumluluk Prensibi (Single Responsibility Principle)** de ihlal edilir, çünkü <code>ShoppingCartService</code> hem ürünleri gezmekten hem de her birine özel iş mantığından sorumludur.</p>
+
+        <p><strong>Visitor Çözümü:</strong> Bu sorunu çözmek için, her bir operasyonu ayrı bir ziyaretçi sınıfına dönüştürebiliriz. Ürünler (Elementler) ise sadece bir ziyaretçiyi kabul etme yeteneğine sahip olurlar. Bu sayede, yeni bir operasyon eklemek istediğimizde mevcut ürün sınıflarını veya ana servis sınıfını değiştirmeye gerek kalmaz.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm ziyaretçiler için bir <code>ShoppingCartVisitor</code> arayüzü tanımlayın. Bu arayüz, her bir somut ürün türü için bir <code>visit()</code> metodu içerir.</li>
+            <li>Tüm ürünler için bir <code>ProductElement</code> arayüzü tanımlayın. Bu arayüz, bir ziyaretçi nesnesi alacak olan bir <code>accept()</code> metodu içerir.</li>
+            <li>Her bir somut ürün sınıfı (<code>Book</code>, <code>Electronics</code>), <code>ProductElement</code> arayüzünü implemente eder ve <code>accept()</code> metodu içinde uygun <code>visit()</code> metodunu çağırır.</li>
+            <li>Her bir operasyon (fiyat hesaplama, vergi hesaplama) için <code>ShoppingCartVisitor</code> arayüzünü implemente eden somut ziyaretçi sınıfları (<code>PricingVisitor</code>, <code>TaxVisitor</code>) oluşturun.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Visitor Arayüzü: ShoppingCartVisitor.java
+public interface ShoppingCartVisitor {
+    double visit(Book book);
+    double visit(Electronics electronics);
+    // Yeni ürünler için yeni metotlar eklenir
+}
+
+// 2. Element Arayüzü: ProductElement.java
+public interface ProductElement {
+    double accept(ShoppingCartVisitor visitor);
+}
+
+// 3. Concrete Elements (Ürünler)
+public class Book implements ProductElement {
+    private double price;
+    // ... getter/setter
+    @Override
+    public double accept(ShoppingCartVisitor visitor) {
+        return visitor.visit(this);
+    }
+}
+
+public class Electronics implements ProductElement {
+    private double price;
+    // ... getter/setter
+    @Override
+    public double accept(ShoppingCartVisitor visitor) {
+        return visitor.visit(this);
+    }
+}
+
+// 4. Concrete Visitors (Operasyonlar)
+@Component
+public class PricingVisitor implements ShoppingCartVisitor {
+    @Override
+    public double visit(Book book) {
+        return book.getPrice() * 0.95; // %5 indirim
+    }
+    @Override
+    public double visit(Electronics electronics) {
+        return electronics.getPrice() * 0.9; // %10 indirim
+    }
+}
+
+@Component
+public class TaxVisitor implements ShoppingCartVisitor {
+    @Override
+    public double visit(Book book) {
+        return book.getPrice() * 0.08;
+    }
+    @Override
+    public double visit(Electronics electronics) {
+        return electronics.getPrice() * 0.18;
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>API Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/cart")
+public class ShoppingCartController {
+    // Tüm ziyaretçileri enjekte etmek için Spring'in listeye enjeksiyon özelliği
+    private final List&lt;ShoppingCartVisitor&gt; visitors;
+
+    @Autowired
+    public ShoppingCartController(List&lt;ShoppingCartVisitor&gt; visitors) {
+        this.visitors = visitors;
+    }
+
+    @PostMapping("/calculate")
+    public ResponseEntity&lt;Double&gt; calculateTotalCost(@RequestBody List&lt;ProductElement&gt; cartItems) {
+        // Doğru ziyaretçiyi bul
+        ShoppingCartVisitor pricingVisitor = visitors.stream()
+            .filter(v -> v instanceof PricingVisitor)
+            .findFirst()
+            .orElseThrow();
+            
+        double totalCost = 0;
+        for (ProductElement item : cartItems) {
+            totalCost += item.accept(pricingVisitor);
+        }
+        return ResponseEntity.ok(totalCost);
+    }
+    
+    @PostMapping("/tax")
+    public ResponseEntity&lt;Double&gt; calculateTax(@RequestBody List&lt;ProductElement&gt; cartItems) {
+        ShoppingCartVisitor taxVisitor = visitors.stream()
+            .filter(v -> v instanceof TaxVisitor)
+            .findFirst()
+            .orElseThrow();
+        
+        double totalTax = 0;
+        for (ProductElement item : cartItems) {
+            totalTax += item.accept(taxVisitor);
+        }
+        return ResponseEntity.ok(totalTax);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir operasyon (örneğin, nakliye maliyeti) eklemek istediğinizde, mevcut ürün sınıflarını veya kontrolcüyü değiştirmeye gerek yoktur. Sadece yeni bir <code>ShippingCostVisitor</code> sınıfı oluşturmanız yeterlidir. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Sorumlulukların Ayrılması:</strong> Her bir ziyaretçi sınıfı (<code>PricingVisitor</code>, <code>TaxVisitor</code>), kendi operasyonunun detaylarından sorumludur. Ürün sınıfları (<code>Book</code>, <code>Electronics</code>) ise sadece bir ziyaretçiyi kabul etme yeteneğine sahiptir. Bu, **Single Responsibility Principle (Tek Sorumluluk Prensibi)**'ne uyum sağlar ve kodun daha temiz olmasını sağlar.
+            </li>
+            <li>
+                <strong>Veri ve Operasyonların Ayrılması:</strong> Visitor deseni, veri yapısı (ürünler) ile bu veri üzerinde yapılan operasyonları (ziyaretçiler) birbirinden ayırır. Bu, kodun daha organize ve yönetilebilir olmasını sağlar.
+            </li>
+            <li>
+                <strong>Merkezi Kontrol:</strong> Tüm operasyon mantığı merkezi bir sınıfta (ziyaretçi) toplandığı için, iş mantığını yönetmek ve sürdürmek daha kolay hale gelir.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

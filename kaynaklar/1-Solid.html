@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLID & Paket Prensipleri - İleri Seviye Yazılım Eğitimi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 70px;
+            height: 2px;
+            background-color: var(--accent-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            font-weight: 600;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .keyword {
+            color: #cc99cd;
+        }
+        
+        .annotation {
+            color: #f08d49;
+        }
+        
+        .method {
+            color: #7ec699;
+        }
+        
+        .string {
+            color: #7ec699;
+        }
+        
+        .footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .benefit-list li {
+            margin-bottom: 10px;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .benefit-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+        
+        .principle-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .principle-table th, .principle-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .principle-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .principle-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .bad-practice {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .good-practice {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-section p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-laptop-code me-2"></i>SOLID & Paket Prensipleri
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#solid">SOLID Prensipleri</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#package">Paket Prensipleri</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">SOLID & Paket Prensipleri</h1>
+            <p class="lead">Spring Boot 3.5 REST API Üzerinden İleri Seviye Yazılım Prensipleri</p>
+            <p class="mt-4">
+                <a href="#solid" class="btn btn-light btn-lg">Eğitime Başla <i class="fas fa-arrow-down ms-2"></i></a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- SOLID Principles Section -->
+        <section id="solid" class="mb-5">
+            <h2 class="section-title">SOLID Prensipleri</h2>
+            
+            <!-- Single Responsibility Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-1 me-2"></i>Single Responsibility Principle (SRP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Bir sınıfın yalnızca bir sorumluluğu olmalı ve değişmesi için yalnızca bir nedeni bulunmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Kod değişikliklerinin yan etkilerinin minimize edilmesi</li>
+                        <li><strong>Sonuç:</strong> Daha az bağımlılık, daha kolay test edilebilirlik ve bakım</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="annotation">@Service</span><br>
+                            <span class="keyword">public class</span> UserService {<br>
+                            &nbsp;&nbsp;<span class="comment">// Kullanıcı işlemleri</span><br>
+                            &nbsp;&nbsp;<span class="keyword">public</span> User <span class="method">createUser</span>(User user) { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public</span> User <span class="method">updateUser</span>(User user) { ... }<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="comment">// E-posta işlemleri (SRP ihlali!)</span><br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendEmail</span>(User user, String message) { ... }<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="comment">// Loglama işlemleri (SRP ihlali!)</span><br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">logUserAction</span>(User user, String action) { ... }<br>
+                            }
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="annotation">@Service</span><br>
+                            <span class="keyword">public class</span> UserService {<br>
+                            &nbsp;&nbsp;<span class="annotation">@Autowired</span><br>
+                            &nbsp;&nbsp;<span class="keyword">private</span> EmailService emailService;<br>
+                            &nbsp;&nbsp;<span class="annotation">@Autowired</span><br>
+                            &nbsp;&nbsp;<span class="keyword">private</span> LoggingService loggingService;<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public</span> User <span class="method">createUser</span>(User user) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Kullanıcı oluşturma mantığı</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;loggingService.logUserCreation(user);<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;emailService.sendWelcomeEmail(user);<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> user;<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Open Closed Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-2 me-2"></i>Open Closed Principle (OCP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Yazılım varlıkları (sınıflar, modüller, fonksiyonlar) genişletmeye açık, değişikliğe kapalı olmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Mevcut kodu değiştirmeden yeni özellikler ekleyebilme</li>
+                        <li><strong>Sonuç:</strong> Daha az regresyon riski ve daha istikrarlı kod tabanı</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="keyword">public class</span> DiscountService {<br>
+                            &nbsp;&nbsp;<span class="keyword">public double</span> <span class="method">calculateDiscount</span>(Order order, String customerType) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (<span class="string">"REGULAR"</span>.equals(customerType)) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> order.getTotal() * 0.1;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;} <span class="keyword">else if</span> (<span class="string">"VIP"</span>.equals(customerType)) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> order.getTotal() * 0.2;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;} <span class="keyword">else if</span> (<span class="string">"PREMIUM"</span>.equals(customerType)) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> order.getTotal() * 0.3;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// Yeni müşteri tipi eklemek için kodu değiştirmek gerekir</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> 0;<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="keyword">public interface</span> DiscountStrategy {<br>
+                            &nbsp;&nbsp;<span class="keyword">double</span> <span class="method">calculateDiscount</span>(Order order);<br>
+                            }<br><br>
+                            
+                            <span class="annotation">@Component</span><br>
+                            <span class="keyword">public class</span> RegularDiscount <span class="keyword">implements</span> DiscountStrategy {<br>
+                            &nbsp;&nbsp;<span class="keyword">public double</span> <span class="method">calculateDiscount</span>(Order order) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> order.getTotal() * 0.1;<br>
+                            &nbsp;&nbsp;}<br>
+                            }<br><br>
+                            
+                            <span class="annotation">@Service</span><br>
+                            <span class="keyword">public class</span> DiscountService {<br>
+                            &nbsp;&nbsp;<span class="annotation">@Autowired</span><br>
+                            &nbsp;&nbsp;<span class="keyword">private</span> Map&lt;String, DiscountStrategy&gt; strategies;<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public double</span> <span class="method">calculateDiscount</span>(Order order, String customerType) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;DiscountStrategy strategy = strategies.get(customerType);<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span> (strategy == <span class="keyword">null</span>) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> 0;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> strategy.calculateDiscount(order);<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Liskov Substitution Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-3 me-2"></i>Liskov Substitution Principle (LSP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Alt sınıflar, üst sınıfların yerine geçebilmeli ve programın doğruluğunu bozmamalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Kalıtım hiyerarşilerinde beklenmeyen davranışların önlenmesi</li>
+                        <li><strong>Sonuç:</strong> Daha güvenilir ve tahmin edilebilir kod</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="keyword">class</span> Rectangle {<br>
+                            &nbsp;&nbsp;<span class="keyword">protected int</span> width;<br>
+                            &nbsp;&nbsp;<span class="keyword">protected int</span> height;<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">setWidth</span>(<span class="keyword">int</span> width) { <span class="keyword">this</span>.width = width; }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">setHeight</span>(<span class="keyword">int</span> height) { <span class="keyword">this</span>.height = height; }<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> Square <span class="keyword">extends</span> Rectangle {<br>
+                            &nbsp;&nbsp;<span class="annotation">@Override</span><br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">setWidth</span>(<span class="keyword">int</span> width) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">super</span>.setWidth(width);<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">super</span>.setHeight(width); <span class="comment">// LSP ihlali!</span><br>
+                            &nbsp;&nbsp;}<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="annotation">@Override</span><br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">setHeight</span>(<span class="keyword">int</span> height) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">super</span>.setHeight(height);<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">super</span>.setWidth(height); <span class="comment">// LSP ihlali!</span><br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="keyword">interface</span> Shape {<br>
+                            &nbsp;&nbsp;<span class="keyword">int</span> <span class="method">getArea</span>();<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> Rectangle <span class="keyword">implements</span> Shape {<br>
+                            &nbsp;&nbsp;<span class="keyword">private int</span> width;<br>
+                            &nbsp;&nbsp;<span class="keyword">private int</span> height;<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public</span> Rectangle(<span class="keyword">int</span> width, <span class="keyword">int</span> height) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.width = width;<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.height = height;<br>
+                            &nbsp;&nbsp;}<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public int</span> <span class="method">getArea</span>() { <span class="keyword">return</span> width * height; }<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> Square <span class="keyword">implements</span> Shape {<br>
+                            &nbsp;&nbsp;<span class="keyword">private int</span> side;<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public</span> Square(<span class="keyword">int</span> side) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.side = side;<br>
+                            &nbsp;&nbsp;}<br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public int</span> <span class="method">getArea</span>() { <span class="keyword">return</span> side * side; }<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Interface Segregation Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-4 me-2"></i>Interface Segregation Principle (ISP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> İstemciler, kullanmadıkları arayüzlere bağımlı olmaya zorlanmamalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> İstemcilerin ihtiyaç duymadığı metodları implemente etme zorunluluğunu ortadan kaldırma</li>
+                        <li><strong>Sonuç:</strong> Daha az bağımlılık ve daha temiz arayüzler</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="keyword">interface</span> Animal {<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">eat</span>();<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">sleep</span>();<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">fly</span>(); <span class="comment">// Tüm hayvanlar uçamaz!</span><br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">swim</span>(); <span class="comment">// Tüm hayvanlar yüzemez!</span><br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> Bird <span class="keyword">implements</span> Animal {<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">eat</span>() { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sleep</span>() { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">fly</span>() { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">swim</span>() { <span class="comment">// Boş implementasyon - ISP ihlali!</span> }<br>
+                            }
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="keyword">interface</span> Animal {<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">eat</span>();<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">sleep</span>();<br>
+                            }<br><br>
+                            
+                            <span class="keyword">interface</span> FlyingAnimal <span class="keyword">extends</span> Animal {<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">fly</span>();<br>
+                            }<br><br>
+                            
+                            <span class="keyword">interface</span> SwimmingAnimal <span class="keyword">extends</span> Animal {<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">swim</span>();<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> Bird <span class="keyword">implements</span> FlyingAnimal {<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">eat</span>() { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sleep</span>() { ... }<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">fly</span>() { ... }<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dependency Inversion Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-5 me-2"></i>Dependency Inversion Principle (DIP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Üst seviye modüller, alt seviye modüllere bağımlı olmamalıdır. Her ikisi de soyutlamalara bağımlı olmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Modüller arası bağımlılıkları azaltmak ve sistemi daha esnek hale getirmek</li>
+                        <li><strong>Sonuç:</strong> Daha kolay test edilebilirlik ve daha az bağımlılık</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="keyword">class</span> EmailService {<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendEmail</span>(String message) { ... }<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> NotificationService {<br>
+                            &nbsp;&nbsp;<span class="keyword">private</span> EmailService emailService = <span class="keyword">new</span> EmailService(); <span class="comment">// DIP ihlali!</span><br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendNotification</span>(String message) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;emailService.sendEmail(message);<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="keyword">interface</span> MessageService {<br>
+                            &nbsp;&nbsp;<span class="keyword">void</span> <span class="method">sendMessage</span>(String message);<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> EmailService <span class="keyword">implements</span> MessageService {<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendMessage</span>(String message) { ... }<br>
+                            }<br><br>
+                            
+                            <span class="keyword">class</span> SMSService <span class="keyword">implements</span> MessageService {<br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendMessage</span>(String message) { ... }<br>
+                            }<br><br>
+                            
+                            <span class="annotation">@Service</span><br>
+                            <span class="keyword">class</span> NotificationService {<br>
+                            &nbsp;&nbsp;<span class="annotation">@Autowired</span><br>
+                            &nbsp;&nbsp;<span class="keyword">private</span> MessageService messageService; <span class="comment">// Soyutlamaya bağımlılık</span><br>
+                            <br>
+                            &nbsp;&nbsp;<span class="keyword">public void</span> <span class="method">sendNotification</span>(String message) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;messageService.sendMessage(message);<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Package Principles Section -->
+        <section id="package" class="mb-5">
+            <h2 class="section-title">Paket Prensipleri</h2>
+            
+            <!-- Reuse Release Equivalency Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-box me-2"></i>Reuse Release Equivalency Principle (REP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Yeniden kullanılabilir birimler (paketler, modüller) sürüm kontrolü ile yönetilmeli ve açıkça tanımlanmış sürüm numaralarına sahip olmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Yeniden kullanılabilir bileşenlerin sürüm yönetimi ve bağımlılık kontrolü</li>
+                        <li><strong>Sonuç:</strong> Daha güvenilir ve yönetilebilir bağımlılıklar</li>
+                    </ul>
+                    
+                    <h5>Spring Boot'ta Uygulama:</h5>
+                    <div class="code-block">
+                        <span class="comment">// pom.xml - Sürüm numaraları açıkça belirtilmeli</span><br>
+                        &lt;groupId&gt;com.example&lt;/groupId&gt;<br>
+                        &lt;artifactId&gt;user-service&lt;/artifactId&gt;<br>
+                        &lt;version&gt;1.2.0&lt;/version&gt;<br><br>
+                        
+                        <span class="comment">// Bağımlılıklar da sürüm numaraları ile belirtilmeli</span><br>
+                        &lt;dependencies&gt;<br>
+                        &nbsp;&nbsp;&lt;dependency&gt;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&lt;version&gt;3.1.0&lt;/version&gt;<br>
+                        &nbsp;&nbsp;&lt;/dependency&gt;<br>
+                        &lt;/dependencies&gt;
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Closure Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-boxes me-2"></i>Common Closure Principle (CCP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Aynı nedenden değişmesi muhtemel sınıflar aynı pakette toplanmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Değişikliklerin etkisini tek bir paketle sınırlandırmak</li>
+                        <li><strong>Sonuç:</strong> Daha az paketin yeniden derlenmesi ve dağıtılması</li>
+                    </ul>
+                    
+                    <h5>Spring Boot'ta Uygulama:</h5>
+                    <div class="code-block">
+                        <span class="comment">// Tüm kullanıcı ile ilgili sınıflar aynı pakette</span><br>
+                        com.example.user<br>
+                        ├── User.java<br>
+                        ├── UserController.java<br>
+                        ├── UserService.java<br>
+                        ├── UserRepository.java<br>
+                        └── UserNotFoundException.java<br><br>
+                        
+                        <span class="comment">// Tüm ödeme ile ilgili sınıflar aynı pakette</span><br>
+                        com.example.payment<br>
+                        ├── Payment.java<br>
+                        ├── PaymentController.java<br>
+                        ├── PaymentService.java<br>
+                        └── PaymentRepository.java
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Reuse Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-share-alt me-2"></i>Common Reuse Principle (CRP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Birlikte kullanılan sınıflar aynı pakette toplanmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Paket bağımlılıklarını minimize etmek</li>
+                        <li><strong>Sonuç:</strong> Daha az bağımlılık ve daha temiz paket yapısı</li>
+                    </ul>
+                    
+                    <h5>Spring Boot'ta Uygulama:</h5>
+                    <div class="code-block">
+                        <span class="comment">// Security ile ilgili tüm sınıflar aynı pakette</span><br>
+                        com.example.security<br>
+                        ├── JwtTokenUtil.java<br>
+                        ├── JwtRequestFilter.java<br>
+                        ├── JwtUserDetailsService.java<br>
+                        ├── WebSecurityConfig.java<br>
+                        └── AuthenticationException.java
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Acyclic Dependencies Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-project-diagram me-2"></i>Acyclic Dependencies Principle (ADP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Paket bağımlılık grafiğinde döngü olmamalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Döngüsel bağımlılıkların yarattığı karmaşıklığı önlemek</li>
+                        <li><strong>Sonuç:</strong> Daha basit ve yönetilebilir bağımlılık yapısı</li>
+                    </ul>
+                    
+                    <h5>Kötü Kullanım:</h5>
+                    <div class="bad-practice">
+                        <div class="code-block">
+                            <span class="comment">// Döngüsel bağımlılık - Paket A, Paket B'ye bağlı</span><br>
+                            <span class="comment">// Paket B, Paket A'ya bağlı</span><br>
+                            com.example.packageA<br>
+                            └── ClassA.java <span class="comment">// PackageB'deki ClassB'yi kullanıyor</span><br><br>
+                            
+                            com.example.packageB<br>
+                            └── ClassB.java <span class="comment">// PackageA'daki ClassA'yı kullanıyor</span>
+                        </div>
+                    </div>
+                    
+                    <h5>İyi Kullanım:</h5>
+                    <div class="good-practice">
+                        <div class="code-block">
+                            <span class="comment">// Ortak tipler üçüncü bir pakette tanımlanmalı</span><br>
+                            com.example.common<br>
+                            └── CommonTypes.java<br><br>
+                            
+                            com.example.packageA<br>
+                            └── ClassA.java <span class="comment">// Common paketini kullanıyor</span><br><br>
+                            
+                            com.example.packageB<br>
+                            └── ClassB.java <span class="comment">// Common paketini kullanıyor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stable Dependencies Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-lock me-2"></i>Stable Dependencies Principle (SDP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Paketler, daha kararlı paketlere bağımlı olmalıdır.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Değişken paketlerin kararlı paketleri etkilemesini önlemek</li>
+                        <li><strong>Sonuç:</strong> Daha istikrarlı ve güvenilir sistem</li>
+                    </ul>
+                    
+                    <h5>Spring Boot'ta Uygulama:</h5>
+                    <div class="code-block">
+                        <span class="comment">// Kararlı core paketleri</span><br>
+                        com.example.core<br>
+                        ├── BaseEntity.java<br>
+                        ├── BaseRepository.java<br>
+                        └── BaseService.java<br><br>
+                        
+                        <span class="comment">// Daha az kararlı servis paketleri core'a bağımlı olabilir</span><br>
+                        com.example.user<br>
+                        ├── User.java <span class="comment">// BaseEntity'den extend eder</span><br>
+                        ├── UserRepository.java <span class="comment">// BaseRepository'den extend eder</span><br>
+                        └── UserService.java <span class="comment">// BaseService'den extend eder</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stable Abstractions Principle -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-drafting-compass me-2"></i>Stable Abstractions Principle (SAP)
+                </div>
+                <div class="card-body">
+                    <p><strong>Tanım:</strong> Kararlı paketler soyut olmalıdır, böylece kararlılıkları esnekliklerini sınırlamaz.</p>
+                    
+                    <h5>Neden-Sonuç İlişkisi:</h5>
+                    <ul>
+                        <li><strong>Neden:</strong> Kararlı paketlerin genişletilebilir olmasını sağlamak</li>
+                        <li><strong>Sonuç:</strong> Kararlılık ve esneklik arasında denge</li>
+                    </ul>
+                    
+                    <h5>Spring Boot'ta Uygulama:</h5>
+                    <div class="code-block">
+                        <span class="comment">// Kararlı ve soyut core paketi</span><br>
+                        com.example.core<br>
+                        ├── BaseEntity.java<br>
+                        ├── BaseRepository.java <span class="comment">// interface</span><br>
+                        └── BaseService.java <span class="comment">// abstract class</span><br><br>
+                        
+                        <span class="comment">// Somut implementasyonlar daha az kararlı paketlerde</span><br>
+                        com.example.user<br>
+                        ├── UserRepositoryImpl.java <span class="comment">// BaseRepository implementasyonu</span><br>
+                        └── UserServiceImpl.java <span class="comment">// BaseService extendi</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer text-center">
+        <div class="container">
+            <p>© 2023 İleri Seviye Yazılım Eğitimi - SOLID & Paket Prensipleri</p>
+            <p>Spring Boot 3.5 REST API Üzerine İnşa Edilmiştir</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

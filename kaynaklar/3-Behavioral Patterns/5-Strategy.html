@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Strategy Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Strategy Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Algoritma Seçimini Dinamik Hale Getirme</p>
+    </header>
+
+    <div class="content">
+        <h2>Strategy Nedir?</h2>
+        <p><strong>Strategy</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desenin temel amacı, bir algoritma ailesini tanımlamak, her birini ayrı bir sınıf içine kapsüllemek ve bu algoritmaların birbirlerinin yerine kullanılabilir olmasını sağlamaktır. Bu sayede, istemci kodun algoritma seçimini statik olarak yapması yerine, çalışma zamanında (runtime) dinamik olarak yapabilmesine olanak tanır.</p>
+
+        <p>Desen üç ana bileşenden oluşur:
+        <ul>
+            <li><strong>Strategy (Strateji):</strong> Tüm algoritmalar için ortak bir arayüz tanımlar. Bu arayüz, genellikle tek bir metot içerir (örneğin, <code>execute()</code>, <code>apply()</code>, <code>calculate()</code>).</li>
+            <li><strong>ConcreteStrategy (Somut Strateji):</strong> <code>Strategy</code> arayüzünü uygulayan ve belirli bir algoritmayı implemente eden sınıflardır. Her somut strateji, kendi özel iş mantığını içerir.</li>
+            <li><strong>Context (Bağlam):</strong> İstemcinin doğrudan etkileşime girdiği sınıftır. Bir <code>Strategy</code> nesnesine referans tutar ve istemcinin seçtiği stratejiye göre işlemleri gerçekleştirir. Context, hangi stratejiyi kullanacağına karar verirken, stratejilerin nasıl implemente edildiğini bilmek zorunda değildir.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, bir isteğin farklı algoritmalar veya iş kuralları ile işlenmesi gerektiği, ancak bu algoritmaların her zaman aynı arayüze sahip olduğu durumlar vardır. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir kargo yönetimi API'si geliştirdiğinizi düşünün. Müşteriler, bir kargoyu farklı taşıyıcılar (örneğin, UPS, FedEx, DHL) aracılığıyla gönderebiliyor. Her taşıyıcının kendine özgü fiyatlandırma, teslimat süresi hesaplama ve takip sistemi entegrasyonu var. Kullanıcılar, kargo gönderirken hangi taşıyıcıyı seçeceklerini belirtir.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (IF-ELSE veya Switch-Case):</strong> Eğer Strategy deseni kullanılmazsa, kargo gönderme işlemini yöneten servis, aşağıdaki gibi karmaşık ve genişlemesi zor bir yapıya sahip olur:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class ShippingService {
+    public ShippingResult calculateShipping(ShippingRequest request) {
+        if ("UPS".equals(request.getCarrier())) {
+            // UPS için özel fiyat ve süre hesaplama mantığı
+            // ...
+        } else if ("FEDEX".equals(request.getCarrier())) {
+            // FedEx için özel mantık
+            // ...
+        } else if ("DHL".equals(request.getCarrier())) {
+            // DHL için özel mantık
+            // ...
+        } else {
+            throw new IllegalArgumentException("Desteklenmeyen taşıyıcı.");
+        }
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, yeni bir taşıyıcı (örneğin, PTT Kargo) eklendiğinde mevcut <code>ShippingService</code> sınıfının değiştirilmesini gerektirir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder ve kodun karmaşıklığını artırır. Test yazmak da zorlaşır, çünkü her bir senaryo için tüm <code>ShippingService</code> metodunun test edilmesi gerekir.</p>
+
+        <p><strong>Strategy Çözümü:</strong> Bu sorunu çözmek için, her bir taşıyıcının hesaplama ve entegrasyon mantığını ayrı bir strateji sınıfına dönüştürebiliriz. Böylece, <code>ShippingService</code> (Context) sadece doğru strateji nesnesini bulur ve onun <code>calculate()</code> metodunu çağırır. Bu, hangi taşıyıcının seçildiğini dinamik olarak yönetmemizi sağlar.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm taşıyıcılar için ortak bir <code>ShippingStrategy</code> arayüzü tanımlayın. Bu arayüz, fiyat hesaplama, tahmini teslimat süresi gibi metotları içerebilir.</li>
+            <li>Her bir taşıyıcı için (<code>UpsStrategy</code>, <code>FedexStrategy</code>) bu arayüzü implemente eden somut strateji sınıfları oluşturun.</li>
+            <li>Bir <code>ShippingStrategyFactory</code> veya <code>StrategyRegistry</code> oluşturarak, hangi stratejinin seçileceğini yönetin. Spring'in bağımlılık enjeksiyonu bu adımı oldukça kolaylaştırır.</li>
+            <li>Context sınıfınız (<code>ShippingService</code> veya doğrudan kontrolcü) gelen isteğe göre doğru stratejiyi seçer ve kullanır.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Strategy Arayüzü
+public interface ShippingStrategy {
+    String getCarrierName();
+    ShippingResult calculate(ShippingRequest request);
+}
+
+// 2. Concrete Strategies
+@Component("upsStrategy")
+public class UpsStrategy implements ShippingStrategy {
+    @Override
+    public String getCarrierName() { return "UPS"; }
+    @Override
+    public ShippingResult calculate(ShippingRequest request) {
+        // UPS'e özgü iş mantığı
+    }
+}
+
+@Component("fedexStrategy")
+public class FedexStrategy implements ShippingStrategy {
+    @Override
+    public String getCarrierName() { return "FEDEX"; }
+    @Override
+    public ShippingResult calculate(ShippingRequest request) {
+        // FedEx'e özgü iş mantığı
+    }
+}
+
+// 3. Context ve Factory (Spring'de Entegrasyonu)
+@Service
+public class ShippingContext {
+    private final Map&lt;String, ShippingStrategy&gt; strategyMap;
+
+    @Autowired
+    public ShippingContext(List&lt;ShippingStrategy&gt; strategies) {
+        this.strategyMap = strategies.stream()
+            .collect(Collectors.toMap(ShippingStrategy::getCarrierName, strategy -> strategy));
+    }
+
+    public ShippingResult calculate(ShippingRequest request) {
+        ShippingStrategy strategy = strategyMap.get(request.getCarrier().toUpperCase());
+        if (strategy == null) {
+            throw new IllegalArgumentException("Desteklenmeyen taşıyıcı.");
+        }
+        return strategy.calculate(request);
+    }
+}
+
+// 4. API Kontrolcüsü
+@RestController
+@RequestMapping("/shipping")
+public class ShippingController {
+    private final ShippingContext shippingContext;
+
+    @Autowired
+    public ShippingController(ShippingContext shippingContext) {
+        this.shippingContext = shippingContext;
+    }
+
+    @PostMapping("/calculate")
+    public ShippingResult calculateShipping(@RequestBody ShippingRequest request) {
+        return shippingContext.calculate(request);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir taşıyıcı eklemek istediğinizde (örneğin, <code>DhlStrategy</code>), tek yapmanız gereken <code>ShippingStrategy</code> arayüzünü uygulayan yeni bir sınıf oluşturmaktır. Mevcut <code>ShippingContext</code> veya <code>ShippingController</code> sınıflarında hiçbir değişiklik yapmaya gerek yoktur. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Sorumlulukların Ayrılması:</strong> Her bir strateji sınıfı, kendi algoritma detaylarından sorumludur. <code>ShippingContext</code> sınıfı, sadece doğru algoritmayı seçmek ve onu çalıştırmakla yükümlüdür. Bu, **Single Responsibility Principle (Tek Sorumluluk Prensibi)**'ne uyum sağlar ve kodun daha temiz olmasını sağlar.
+            </li>
+            <li>
+                <strong>Test Edilebilirlik:</strong> Her strateji sınıfı, diğerlerinden bağımsız olarak kolayca birim testine tabi tutulabilir.
+            </li>
+            <li>
+                <strong>İstemci Kodunun Basitleştirilmesi:</strong> Kontrolcü veya istemci kodu, hangi algoritmanın çalıştığını bilmek zorunda değildir. Sadece <code>ShippingContext</code> nesnesi ile etkileşime girer ve istediği sonucu alır. Bu, kodu daha sade ve okunur hale getirir.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

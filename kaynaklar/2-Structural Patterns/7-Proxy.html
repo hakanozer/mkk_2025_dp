@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Proxy Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Proxy Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Nesnelere Erişim Kontrolü ve Yönetimi</p>
+    </header>
+
+    <div class="content">
+        <h2>Proxy Nedir?</h2>
+        <p><strong>Proxy</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, bir nesne için vekil veya yer tutucu (placeholder) bir nesne sağlayarak, o nesneye erişimi kontrol etmektir. Vekil nesne (proxy), orijinal nesne ile aynı arayüze sahiptir ve gelen istekleri orijinal nesneye (subject) yönlendirmeden önce ek işlemler (erişim kontrolü, cacheleme, loglama vb.) yapabilir. Bu, bir banka veznedarı gibi düşünülebilir; müşterinin doğrudan bankanın kasasına erişmesini engeller ve tüm işlemleri kendi üzerinden yönlendirir.</p>
+
+        <p>Desen üç ana bileşenden oluşur:
+        <ul>
+            <li><strong>Subject (Konu):</strong> Hem gerçek nesnenin hem de vekil nesnenin uyguladığı ortak arayüzdür. İstemci (client), bu arayüz üzerinden etkileşime girer.</li>
+            <li><strong>Real Subject (Gerçek Konu):</strong> Gerçek iş mantığını içeren ve maliyetli veya hassas işlemleri gerçekleştiren asıl nesnedir.</li>
+            <li><strong>Proxy (Vekil):</strong> <code>Subject</code> arayüzünü uygulayan ve <code>Real Subject</code>'e bir referans tutan sınıftır. Gelen istekleri <code>Real Subject</code>'e yönlendirmeden önce ek işlemler yapar.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, bir kaynağa (resource) erişim sağlamak için maliyetli veya güvenlik hassasiyeti olan bir işlem gerekebilir. Örneğin, bir API uç noktasının çok sık çağrılması durumunda performansı artırmak için önbellekleme (caching) eklemek veya hassas verilere erişimi rol bazlı olarak kontrol etmek gerekebilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir raporlama API'si geliştirdiğinizi düşünün. Bu API'de, bir kullanıcının finansal raporları indirmesine olanak tanıyan bir uç nokta bulunuyor. Ancak:
+        <ul>
+            <li>Rapor oluşturma işlemi çok maliyetli ve zaman alıyor. Aynı rapor sık sık isteniyorsa, her seferinde yeniden oluşturmak yerine önbellekten servis etmek mantıklıdır.</li>
+            <li>Bu finansal raporlara sadece "ADMIN" rolüne sahip kullanıcıların erişimi olmalıdır.</li>
+        </ul></p>
+        
+        <p><strong>Yetersiz Yaklaşım (Doğrudan Erişim ve Sıkı Bağlılık):</strong> Eğer Proxy deseni kullanılmazsa, raporu oluşturan servise doğrudan erişilir ve ek işlemler (güvenlik, önbellekleme) ana servis metodunun içine karıştırılır:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class FinancialReportService {
+    // ... repository, other dependencies
+    
+    public FinancialReport generateReport(User user) {
+        // Güvenlik kontrolü
+        if (!user.getRoles().contains("ADMIN")) {
+            throw new SecurityException("Yetkisiz erişim.");
+        }
+        
+        // Önbellekleme kontrolü
+        FinancialReport cachedReport = getFromCache();
+        if (cachedReport != null) {
+            return cachedReport;
+        }
+        
+        // Çok maliyetli asıl işlem
+        FinancialReport report = performHeavyCalculation();
+        
+        // Önbelleğe kaydetme
+        saveToCache(report);
+        
+        return report;
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, **Tek Sorumluluk Prensibi (Single Responsibility Principle)**'ni ihlal eder. <code>FinancialReportService</code> sınıfı, hem raporu oluşturma hem de güvenlik ve önbellekleme gibi tamamen farklı sorumlulukları üstlenir. Bu, kodun okunurluğunu ve bakımını zorlaştırır. Ayrıca, rapor oluşturma mantığına her yeni işlevi (örneğin, loglama) eklemek için bu sınıfın değiştirilmesi gerekir, bu da **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder.</p>
+
+        <p><strong>Proxy Çözümü:</strong> Bu sorunu çözmek için, maliyetli ve hassas olan <code>FinancialReportService</code>'e bir vekil (proxy) oluşturabiliriz. Vekil, güvenlik ve önbellekleme gibi ek işlemleri yaparken, ana rapor servisi sadece raporu oluşturmaktan sorumlu olur.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Gerçek nesne (<code>FinancialReportService</code>) ve vekil için ortak bir <code>ReportService</code> arayüzü (Subject) tanımlayın.</li>
+            <li>Maliyetli işlemi gerçekleştiren <code>FinancialReportService</code> sınıfını (Real Subject) oluşturun. Bu sınıf sadece iş mantığından sorumlu olacaktır.</li>
+            <li><code>ReportService</code> arayüzünü uygulayan bir <code>FinancialReportProxy</code> sınıfı (Proxy) oluşturun. Bu sınıf, içindeki <code>FinancialReportService</code>'e bir referans tutar.</li>
+            <li><code>FinancialReportProxy</code>'nin metotları içinde, güvenlik kontrolü ve önbellekleme mantığını implemente edin ve daha sonra gerçek işi <code>FinancialReportService</code>'e devredin.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Subject Arayüzü: ReportService.java
+public interface ReportService {
+    FinancialReport generateReport();
+}
+
+// 2. Real Subject (Gerçek Nesne): FinancialReportService.java
+@Service("realService")
+public class FinancialReportService implements ReportService {
+    @Override
+    public FinancialReport generateReport() {
+        System.out.println("Maliyetli finansal rapor oluşturuluyor...");
+        // Çok zaman alan, karmaşık işlem
+        try { Thread.sleep(2000); } catch (InterruptedException e) {}
+        return new FinancialReport("2023 Finansal Rapor");
+    }
+}
+
+// 3. Proxy (Vekil): FinancialReportProxy.java
+@Service("proxyService")
+public class FinancialReportProxy implements ReportService {
+    private final FinancialReportService realService;
+    private FinancialReport cachedReport;
+    
+    @Autowired
+    public FinancialReportProxy(@Qualifier("realService") FinancialReportService realService) {
+        this.realService = realService;
+    }
+    
+    @Override
+    public FinancialReport generateReport() {
+        // Önceden oluşturulmuş bir rapor var mı?
+        if (cachedReport != null) {
+            System.out.println("Rapor önbellekten servis ediliyor.");
+            return cachedReport;
+        }
+        
+        // Asıl işlemi çağır
+        System.out.println("Rapor ilk kez oluşturuluyor, vekil üzerinden çağrıldı.");
+        this.cachedReport = realService.generateReport();
+        
+        return this.cachedReport;
+    }
+}
+
+// 4. API Kontrolcüsü (İstemci)
+@RestController
+@RequestMapping("/reports")
+public class ReportController {
+    
+    private final ReportService reportService;
+    
+    @Autowired
+    public ReportController(@Qualifier("proxyService") ReportService reportService) {
+        this.reportService = reportService;
+    }
+    
+    @GetMapping("/financial")
+    public ResponseEntity&lt;FinancialReport&gt; getFinancialReport() {
+        // Kontrolcü sadece ortak arayüzü çağırır, vekilin varlığından haberdar değildir
+        // (Spring'in AOP'si ile bu daha da otomatikleştirilebilir)
+        FinancialReport report = reportService.generateReport();
+        return ResponseEntity.ok(report);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Erişim Kontrolü:</strong> Vekil, asıl nesneye erişimi kontrol edebilir ve güvenlik, kimlik doğrulama gibi işlemleri gerçekleştirebilir. Bu sayede hassas nesneleri korur.
+            </li>
+            <li>
+                <strong>Performans Optimizasyonu:</strong> Proxy, maliyetli işlemlerin sonuçlarını önbelleğe alarak veya nesnenin oluşturulmasını erteleyerek (lazy initialization), sistemin performansını önemli ölçüde artırabilir.
+            </li>
+            <li>
+                <strong>Gevşek Bağlılık (Loose Coupling):</strong> İstemci (<code>ReportController</code>), gerçek nesne yerine vekil nesneyle etkileşime girer. Her ikisi de aynı arayüzü implemente ettiği için, asıl nesnenin davranışına zarar vermeden yeni işlevsellik eklemek kolaylaşır.
+            </li>
+            <li>
+                <strong>Tek Sorumluluk Prensibi (Single Responsibility Principle):</strong> Asıl nesne sadece iş mantığından sorumlu kalırken, vekil nesne güvenlik, önbellekleme veya loglama gibi ek sorumlulukları üstlenir. Bu, kodun daha temiz ve yönetilebilir olmasını sağlar.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

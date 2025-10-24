@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Facade Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Facade Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Karmaşık Alt Sistemleri Basitleştirme</p>
+    </header>
+
+    <div class="content">
+        <h2>Facade Nedir?</h2>
+        <p><strong>Facade</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, karmaşık bir alt sistem için basitleştirilmiş bir arayüz (yüzey) sağlamaktır. Facade, istemcinin (client) doğrudan bir alt sistemin karmaşık sınıfları ve metotları ile etkileşime girmesi yerine, bu karmaşıklığı soyutlayan ve basitleştiren tek bir arayüz sunar. Bu, bir binanın dış cephesi gibi düşünülebilir; içerideki boru, elektrik ve kablo sisteminin karmaşıklığını gizler, dışarıdan sadece basit ve anlaşılır bir yapı gösterir.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Facade (Yüzey/Cephe):</strong> Alt sistemin karmaşıklığını gizleyen ve basit bir arayüz sunan sınıftır. Bu sınıf, istemciden gelen istekleri alır ve bunları alt sistemin ilgili nesnelerine ve metotlarına yönlendirir.</li>
+            <li><strong>Subsystem (Alt Sistem):</strong> Karmaşık işlevselliği oluşturan bir dizi sınıftır. Facade, bu sınıflar arasında koordinasyonu sağlar.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API geliştirirken, bir API çağrısının arka planda birden fazla karmaşık işlemi tetiklemesi gerekebilir. Örneğin, bir sipariş oluşturma işlemi; ürün stok kontrolü, ödeme işleme, fatura oluşturma ve kargo bildirimi gibi farklı alt sistemlerin sınıflarını içerebilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret API'sinde yeni bir siparişin oluşturulması için bir uç nokta (endpoint) sağlamanız gerekiyor. Bu işlem için aşağıdaki alt sistemlerle etkileşime geçilmesi gerekir:
+        <ul>
+            <li><strong>Stok Yönetimi:</strong> Ürünün stokta olup olmadığını kontrol et ve stok miktarını düşür.</li>
+            <li><strong>Ödeme İşleme:</strong> Müşterinin ödemesini al.</li>
+            <li><strong>Fatura Oluşturma:</strong> Sipariş için bir fatura oluştur ve kaydet.</li>
+            <li><strong>Bildirim:</strong> Müşteriye siparişin durumunu bildiren bir e-posta gönder.</li>
+        </ul></p>
+        
+        <p><strong>Yetersiz Yaklaşım (Sıkı Bağlılık):</strong> Eğer Facade deseni kullanılmazsa, siparişi oluşturan kontrolcü veya servis katmanı, tüm bu alt sistemlerin sınıflarına doğrudan erişmek ve onları manuel olarak koordine etmek zorunda kalır:</p>
+
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    
+    private final StockService stockService;
+    private final PaymentService paymentService;
+    private final InvoiceService invoiceService;
+    private final NotificationService notificationService;
+    // ... constructor injection
+    
+    @PostMapping("/create")
+    public ResponseEntity&lt;?&gt; createOrder(@RequestBody OrderRequest request) {
+        if (!stockService.isAvailable(request.getProductId())) {
+            return ResponseEntity.badRequest().body("Ürün stokta yok.");
+        }
+        
+        PaymentResult paymentResult = paymentService.processPayment(request.getPaymentInfo());
+        if (!paymentResult.isSuccess()) {
+            return ResponseEntity.badRequest().body("Ödeme başarısız.");
+        }
+        
+        Invoice invoice = invoiceService.createInvoice(request.getOrderDetails());
+        stockService.deductStock(request.getProductId());
+        notificationService.sendOrderConfirmation(request.getCustomerEmail());
+        
+        return ResponseEntity.ok("Sipariş başarıyla oluşturuldu.");
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, **istemciyi (<code>OrderController</code>) alt sistemin tüm karmaşık detaylarına sıkı sıkıya bağlar**. Kontrolcü, sipariş oluşturma işleminin mantığıyla birlikte, stok, ödeme, fatura ve bildirim servislerinin her birinin metodlarını ve onların sıralamasını bilmek zorunda kalır. Yeni bir adım (örneğin, kargo takibi) eklenmek istendiğinde, mevcut kontrolcü sınıfının değiştirilmesi gerekir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder ve kodun karmaşıklığını artırır.</p>
+
+        <p><strong>Facade Çözümü:</strong> Bu sorunu çözmek için, tüm sipariş oluşturma mantığını bir Facade sınıfı içine kapsülleyebiliriz. Kontrolcü, sadece bu Facade sınıfını çağırır ve işlemin nasıl yapıldığıyla ilgilenmez. Facade sınıfı, arka planda tüm alt sistemleri koordine eder.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm alt sistem sınıflarını (<code>StockService</code>, <code>PaymentService</code>, vb.) oluşturun.</li>
+            <li>Bir <code>OrderFacade</code> sınıfı oluşturun. Bu sınıf, constructor'ında tüm alt sistem servislerini alır (Spring'in bağımlılık enjeksiyonu ile kolayca yapılabilir).</li>
+            <li><code>OrderFacade</code> sınıfında, sipariş oluşturma gibi yüksek seviyeli bir işlem için basitleştirilmiş bir metot (örneğin, <code>placeOrder()</code>) tanımlayın.</li>
+            <li>Bu metot içinde, alt sistem servislerinin tüm mantığını uygun sırayla çağırın ve yönetin.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Alt Sistem Servisleri (Örnek)
+@Service
+public class StockService {
+    public boolean isAvailable(String productId) { /* ... */ }
+    public void deductStock(String productId) { /* ... */ }
+}
+// ... PaymentService, InvoiceService, NotificationService
+
+// 2. Facade Sınıfı
+@Service
+public class OrderFacade {
+    private final StockService stockService;
+    private final PaymentService paymentService;
+    private final InvoiceService invoiceService;
+    private final NotificationService notificationService;
+    
+    @Autowired
+    public OrderFacade(StockService stockService, PaymentService paymentService, 
+                       InvoiceService invoiceService, NotificationService notificationService) {
+        this.stockService = stockService;
+        this.paymentService = paymentService;
+        this.invoiceService = invoiceService;
+        this.notificationService = notificationService;
+    }
+    
+    public void placeOrder(OrderRequest request) {
+        // Facade, tüm karmaşık mantığı yönetir
+        if (!stockService.isAvailable(request.getProductId())) {
+            throw new IllegalStateException("Ürün stokta yok.");
+        }
+        
+        paymentService.processPayment(request.getPaymentInfo());
+        invoiceService.createInvoice(request.getOrderDetails());
+        stockService.deductStock(request.getProductId());
+        notificationService.sendOrderConfirmation(request.getCustomerEmail());
+    }
+}
+
+// 3. API Kontrolcüsü
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    
+    private final OrderFacade orderFacade;
+    
+    @Autowired
+    public OrderController(OrderFacade orderFacade) {
+        this.orderFacade = orderFacade;
+    }
+    
+    @PostMapping("/create")
+    public ResponseEntity&lt;?&gt; createOrder(@RequestBody OrderRequest request) {
+        try {
+            orderFacade.placeOrder(request);
+            return ResponseEntity.ok("Sipariş başarıyla oluşturuldu.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>İstemciyi Soyutlama:</strong> İstemci kod (<code>OrderController</code>), sipariş oluşturma işleminin içindeki karmaşık adımlardan ve ilgili servislerden haberdar olmaz. Sadece Facade'ın basitleştirilmiş arayüzünü kullanır.
+            </li>
+            <li>
+                <strong>Sıkı Bağlılığı Azaltma (Decoupling):</strong> Facade deseni, istemci ve alt sistemler arasındaki sıkı bağımlılığı ortadan kaldırır. Bu, sistemin modülerliğini ve esnekliğini artırır.
+            </li>
+            <li>
+                <strong>Kodun Bakımını Kolaylaştırma:</strong> Bir iş akışındaki (örneğin, sipariş oluşturma) bir adım değiştiğinde, sadece Facade sınıfının içindeki ilgili metot güncellenir. Bu, diğer sınıfları etkilemez ve kodun bakımını kolaylaştırır.
+            </li>
+            <li>
+                <strong>Kodun Okunabilirliğini İyileştirme:</strong> Kontrolcüdeki tek bir metot çağrısı (<code>orderFacade.placeOrder()</code>), tüm iş akışının ne yaptığını açıkça gösterir. Bu, kodu daha anlaşılır hale getirir.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

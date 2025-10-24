@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Adapter Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Adapter Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Uyumsuz Arayüzleri Bir Araya Getirme</p>
+    </header>
+
+    <div class="content">
+        <h2>Adapter Nedir?</h2>
+        <p><strong>Adapter</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, bir sınıfın arayüzünü, istemcinin beklediği başka bir arayüze dönüştürmektir. Bu sayede, normalde birlikte çalışamayan uyumsuz arayüze sahip sınıflar birlikte çalışabilir hale gelir. Adapter deseni, bir elektrik prizi dönüştürücüsüne benzetilebilir; farklı tipteki fişleri standart bir prize uyumlu hale getirir.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Target (Hedef):</strong> İstemcinin beklediği arayüzdür. İstemci, bu arayüzü kullanarak adaptörle iletişim kurar.</li>
+            <li><strong>Adaptee (Uyumlu Hale Getirilecek Nesne):</strong> Uyumsuz arayüze sahip olan, ancak işlevselliğini kullanmak istediğimiz nesnedir.</li>
+            <li><strong>Adapter (Adaptör):</strong> Hem <code>Target</code> arayüzünü implemente eden hem de <code>Adaptee</code> nesnesine referans tutan sınıftır. Gelen istekleri <code>Target</code> arayüzünden alır, bunları <code>Adaptee</code>'nin anladığı formata dönüştürür ve işlemi <code>Adaptee</code>'ye devreder.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API geliştirirken, genellikle dış kaynaklardan (üçüncü parti servisler, eski sistemler) gelen verileri veya işlevsellikleri entegre etmemiz gerekir. Bu dış kaynakların arayüzleri, bizim sistemimizin beklediği format veya metot isimleriyle uyumsuz olabilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret uygulamasında, ürünlerin kargo takibi için farklı üçüncü parti kargo servisleriyle (örneğin, UPS, FedEx) entegrasyon yapmanız gerekiyor. Sizin API'nizin beklediği arayüzde bir <code>TrackService</code> metodu var. Ancak, entegre olacağınız UPS servisinin metotları <code>GetPackageStatus()</code> gibi farklı isimlere sahip.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Sıkı Bağlı ve Kırılgan Kod):</strong> Eğer Adapter deseni kullanılmazsa, kontrolcü veya servis katmanında her bir uyumsuz servisi doğrudan çağırmamız ve gelen veriyi manuel olarak dönüştürmemiz gerekir:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class ShippingService {
+    private final UpsApi upsApi;
+    private final FedexApi fedexApi;
+
+    public ShippingService(UpsApi upsApi, FedexApi fedexApi) {
+        this.upsApi = upsApi;
+        this.fedexApi = fedexApi;
+    }
+
+    public String trackPackage(String carrier, String trackingNumber) {
+        if ("UPS".equals(carrier)) {
+            UpsStatus status = upsApi.getPackageStatus(trackingNumber);
+            return convertUpsStatusToOurFormat(status);
+        } else if ("FEDEX".equals(carrier)) {
+            FedexPackageInfo info = fedexApi.retrieveTrackingInfo(trackingNumber);
+            return convertFedexInfoToOurFormat(info);
+        } else {
+            throw new IllegalArgumentException("Unknown carrier.");
+        }
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu monolitik yaklaşım, <code>ShippingService</code> sınıfını her bir kargo servisi API'sine sıkı sıkıya bağlar. Yeni bir kargo servisi (örneğin, DHL) eklendiğinde, <code>ShippingService</code> sınıfını değiştirmek, yeni <code>if-else</code> blokları eklemek ve yeni dönüştürme mantığı yazmak zorunda kalırsınız. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder ve kodun bakımını zorlaştırır.</p>
+
+        <p><strong>Adapter Çözümü:</strong> Bu sorunu çözmek için, her uyumsuz servisi kendi adaptör sınıfı aracılığıyla bizim beklediğimiz arayüze (<code>TrackingService</code>) dönüştürebiliriz. Kontrolcü, sadece bu ortak arayüzü kullanır ve adaptörün içindeki dönüştürme mantığının detaylarıyla ilgilenmez.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>İstemcinin beklediği ortak arayüzü (<code>TrackingService</code>) tanımlayın.</li>
+            <li>Uyumsuz arayüze sahip üçüncü parti servis sınıflarını (<code>UpsApi</code>, <code>FedexApi</code>) uyumlu hale getirmek için adaptör sınıfları (<code>UpsTrackingAdapter</code>, <code>FedexTrackingAdapter</code>) oluşturun.</li>
+            <li>Her adaptör sınıfı, <code>TrackingService</code> arayüzünü implemente eder ve içindeki uyumsuz servisin bir örneğine referans tutar.</li>
+            <li>Adaptör sınıfları, <code>TrackingService</code>'in metod çağrılarını alıp, uygun parametre ve formatla uyumsuz servisin metodlarına iletir.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Target Arayüzü
+public interface TrackingService {
+    String track(String trackingNumber);
+}
+
+// 2. Adaptee (Uyumsuz Servisler)
+public class UpsApi {
+    public UpsStatus getPackageStatus(String packageId) { /* ... */ }
+}
+
+public class FedexApi {
+    public FedexPackageInfo retrieveTrackingInfo(String packageId) { /* ... */ }
+}
+
+// 3. Adapter Sınıfları
+@Component
+public class UpsTrackingAdapter implements TrackingService {
+    private final UpsApi upsApi;
+    public UpsTrackingAdapter(UpsApi upsApi) { this.upsApi = upsApi; }
+
+    @Override
+    public String track(String trackingNumber) {
+        UpsStatus status = upsApi.getPackageStatus(trackingNumber);
+        return convertUpsStatusToOurFormat(status); // Veri dönüştürme
+    }
+}
+
+@Component
+public class FedexTrackingAdapter implements TrackingService {
+    private final FedexApi fedexApi;
+    public FedexTrackingAdapter(FedexApi fedexApi) { this.fedexApi = fedexApi; }
+
+    @Override
+    public String track(String trackingNumber) {
+        FedexPackageInfo info = fedexApi.retrieveTrackingInfo(trackingNumber);
+        return convertFedexInfoToOurFormat(info); // Veri dönüştürme
+    }
+}
+
+// 4. Kontrolcü Kullanımı (Context)
+@RestController
+@RequestMapping("/shipments")
+public class ShipmentController {
+    // Spring, bu listeye tüm TrackingService implementasyonlarını enjekte eder
+    private final List&lt;TrackingService&gt; trackingServices;
+
+    @Autowired
+    public ShipmentController(List&lt;TrackingService&gt; trackingServices) {
+        this.trackingServices = trackingServices;
+    }
+
+    @GetMapping("/track/{carrier}/{trackingNumber}")
+    public String trackShipment(@PathVariable String carrier, @PathVariable String trackingNumber) {
+        TrackingService service = trackingServices.stream()
+            .filter(s -> s.getClass().getSimpleName().contains(carrier))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Unknown carrier."));
+
+        return service.track(trackingNumber);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Sıkı Bağlılığı Azaltma (Decoupling):</strong> İstemci kod (<code>ShipmentController</code>), her bir uyumsuz servisin detaylarından tamamen soyutlanır. Sadece ortak <code>TrackingService</code> arayüzünü bilir. Bu, kodun gevşek bağlı (loosely coupled) olmasını sağlar.
+            </li>
+            <li>
+                <strong>Genişletilebilirlik:</strong> Yeni bir kargo servisi (DHL) eklemek istediğinizde, mevcut kontrolcü sınıfını veya diğer adaptörleri değiştirmeye gerek yoktur. Sadece <code>TrackingService</code> arayüzünü implemente eden yeni bir <code>DhlTrackingAdapter</code> sınıfı oluşturmanız yeterlidir. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Yeniden Kullanılabilirlik:</strong> Uyumsuz bir servis, adaptör sayesinde mevcut sisteminize entegre edilebilir ve onun işlevselliği yeniden kullanılabilir hale gelir.
+            </li>
+            <li>
+                <strong>Tek Sorumluluk Prensibi (Single Responsibility Principle):</strong> Her adaptör sınıfı, sadece bir uyumsuz servisi uyumlu hale getirme sorumluluğuna sahiptir. Bu net ayrım, kodun bakımını ve okunabilirliğini kolaylaştırır.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

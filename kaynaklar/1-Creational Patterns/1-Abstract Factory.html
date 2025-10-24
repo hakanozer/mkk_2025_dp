@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abstract Factory Pattern - Spring Boot 3.5 REST API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #667eea;
+            display: inline-block;
+        }
+
+        .subsection-title {
+            color: #4a5568;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .subsection-title::before {
+            content: "▶";
+            color: #667eea;
+            margin-right: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid #2d3748;
+            position: relative;
+        }
+
+        .code-block::before {
+            content: "Java";
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; font-style: italic; }
+        .annotation { color: #8be9fd; }
+        .class-name { color: #50fa7b; }
+        .method { color: #ffb86c; }
+
+        .benefit-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .benefit-item {
+            background: linear-gradient(135deg, #f7fafc, #edf2f7);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .benefit-item:hover {
+            transform: translateX(5px);
+        }
+
+        .benefit-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .architecture-diagram {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-family: monospace;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #667eea10, #764ba210);
+            border: 1px solid #667eea30;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fbbf2410, #f6932510);
+            border: 1px solid #fbbf2430;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #fbbf24;
+        }
+
+        .tab-container {
+            margin: 1.5rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-bottom: none;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 12px 12px;
+            padding: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .benefit-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Abstract Factory Design Pattern</h1>
+            <p>Spring Boot 3.5 REST API Implementation Guide</p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Pattern Tanımı ve Amacı</h2>
+            <p>Abstract Factory Pattern, birbiriyle ilişkili nesne ailelerini oluşturmak için arayüz sağlayan creational design pattern'dır. Bu pattern, client kodun somut sınıfları bilmeden nesne ailelerini oluşturmasına olanak tanır.</p>
+            
+            <div class="highlight-box">
+                <strong>Temel Prensip:</strong> "Bir interface aracılığıyla ilgili nesneler ailesini üretmek, ancak bu nesnelerin somut sınıflarını belirtmeden."
+            </div>
+
+            <h3 class="subsection-title">GoF Tanımı</h3>
+            <p><em>"Concrete sınıflarını belirtmeden, ilgili veya bağımlı nesneler ailesi oluşturmak için bir arayüz sağlar."</em></p>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Mimari Yapı</h2>
+            <div class="architecture-diagram">
+<pre>
+AbstractFactory Interface
+    ↓
+ConcreteFactory1    ConcreteFactory2
+    ↓                      ↓
+ProductA1               ProductA2
+ProductB1               ProductB2
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Temel Bileşenler</h3>
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">AbstractFactory</div>
+                    İlgili ürün nesnelerini oluşturmak için operasyonlar beyan eder.
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-title">ConcreteFactory</div>
+                    Belirli bir ürün ailesini oluşturan operasyonları implement eder.
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-title">AbstractProduct</div>
+                    Bir ürün nesnesi türü için arayüz beyan eder.
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-title">ConcreteProduct</div>
+                    İlgili ConcreteFactory tarafından oluşturulan ürün nesnesini tanımlar.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Spring Boot 3.5 Implementation</h2>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('interfaces')">Interfaces</button>
+                    <button class="tab-button" onclick="showTab('factories')">Factories</button>
+                    <button class="tab-button" onclick="showTab('service')">Service Layer</button>
+                    <button class="tab-button" onclick="showTab('controller')">REST Controller</button>
+                </div>
+
+                <div id="interfaces" class="tab-content active">
+                    <h4>Abstract Factory ve Product Interfaces</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Abstract Factory Interface</span>
+<span class="keyword">public interface</span> <span class="class-name">PaymentProcessorFactory</span> {
+    <span class="class-name">PaymentProcessor</span> <span class="method">createPaymentProcessor</span>();
+    <span class="class-name">PaymentValidator</span> <span class="method">createPaymentValidator</span>();
+    <span class="class-name">PaymentNotifier</span> <span class="method">createPaymentNotifier</span>();
+}
+
+<span class="comment">// Abstract Product Interfaces</span>
+<span class="keyword">public interface</span> <span class="class-name">PaymentProcessor</span> {
+    <span class="class-name">PaymentResult</span> <span class="method">processPayment</span>(<span class="class-name">PaymentRequest</span> request);
+}
+
+<span class="keyword">public interface</span> <span class="class-name">PaymentValidator</span> {
+    <span class="keyword">boolean</span> <span class="method">validatePayment</span>(<span class="class-name">PaymentRequest</span> request);
+}
+
+<span class="keyword">public interface</span> <span class="class-name">PaymentNotifier</span> {
+    <span class="keyword">void</span> <span class="method">sendNotification</span>(<span class="class-name">PaymentResult</span> result);
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="factories" class="tab-content">
+                    <h4>Concrete Factory Implementations</h4>
+                    <div class="code-block">
+<pre>
+<span class="comment">// Credit Card Payment Factory</span>
+<span class="annotation">@Component</span>
+<span class="annotation">@Qualifier</span>(<span class="string">"creditCard"</span>)
+<span class="keyword">public class</span> <span class="class-name">CreditCardPaymentFactory</span> <span class="keyword">implements</span> <span class="class-name">PaymentProcessorFactory</span> {
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentProcessor</span> <span class="method">createPaymentProcessor</span>() {
+        <span class="keyword">return new</span> <span class="class-name">CreditCardProcessor</span>();
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentValidator</span> <span class="method">createPaymentValidator</span>() {
+        <span class="keyword">return new</span> <span class="class-name">CreditCardValidator</span>();
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentNotifier</span> <span class="method">createPaymentNotifier</span>() {
+        <span class="keyword">return new</span> <span class="class-name">EmailNotifier</span>();
+    }
+}
+
+<span class="comment">// Digital Wallet Payment Factory</span>
+<span class="annotation">@Component</span>
+<span class="annotation">@Qualifier</span>(<span class="string">"digitalWallet"</span>)
+<span class="keyword">public class</span> <span class="class-name">DigitalWalletPaymentFactory</span> <span class="keyword">implements</span> <span class="class-name">PaymentProcessorFactory</span> {
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentProcessor</span> <span class="method">createPaymentProcessor</span>() {
+        <span class="keyword">return new</span> <span class="class-name">DigitalWalletProcessor</span>();
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentValidator</span> <span class="method">createPaymentValidator</span>() {
+        <span class="keyword">return new</span> <span class="class-name">DigitalWalletValidator</span>();
+    }
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentNotifier</span> <span class="method">createPaymentNotifier</span>() {
+        <span class="keyword">return new</span> <span class="class-name">PushNotifier</span>();
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="service" class="tab-content">
+                    <h4>Service Layer Implementation</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">PaymentService</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">PaymentProcessorFactory</span>&gt; factories;
+    
+    <span class="keyword">public</span> <span class="method">PaymentService</span>(<span class="class-name">Map</span>&lt;<span class="class-name">String</span>, <span class="class-name">PaymentProcessorFactory</span>&gt; factories) {
+        <span class="keyword">this</span>.factories = factories;
+    }
+    
+    <span class="keyword">public</span> <span class="class-name">PaymentResult</span> <span class="method">processPayment</span>(<span class="class-name">PaymentRequest</span> request) {
+        <span class="comment">// Factory Selection Strategy</span>
+        <span class="class-name">PaymentProcessorFactory</span> factory = <span class="method">selectFactory</span>(request.getPaymentType());
+        
+        <span class="comment">// Create product family</span>
+        <span class="class-name">PaymentValidator</span> validator = factory.<span class="method">createPaymentValidator</span>();
+        <span class="class-name">PaymentProcessor</span> processor = factory.<span class="method">createPaymentProcessor</span>();
+        <span class="class-name">PaymentNotifier</span> notifier = factory.<span class="method">createPaymentNotifier</span>();
+        
+        <span class="comment">// Business Logic</span>
+        <span class="keyword">if</span> (!validator.<span class="method">validatePayment</span>(request)) {
+            <span class="keyword">throw new</span> <span class="class-name">InvalidPaymentException</span>(<span class="string">"Payment validation failed"</span>);
+        }
+        
+        <span class="class-name">PaymentResult</span> result = processor.<span class="method">processPayment</span>(request);
+        notifier.<span class="method">sendNotification</span>(result);
+        
+        <span class="keyword">return</span> result;
+    }
+    
+    <span class="keyword">private</span> <span class="class-name">PaymentProcessorFactory</span> <span class="method">selectFactory</span>(<span class="class-name">PaymentType</span> type) {
+        <span class="keyword">return switch</span> (type) {
+            <span class="keyword">case</span> CREDIT_CARD -> factories.<span class="method">get</span>(<span class="string">"creditCard"</span>);
+            <span class="keyword">case</span> DIGITAL_WALLET -> factories.<span class="method">get</span>(<span class="string">"digitalWallet"</span>);
+            <span class="keyword">default</span> -> <span class="keyword">throw new</span> <span class="class-name">UnsupportedPaymentTypeException</span>(type);
+        };
+    }
+}
+</pre>
+                    </div>
+                </div>
+
+                <div id="controller" class="tab-content">
+                    <h4>REST Controller</h4>
+                    <div class="code-block">
+<pre>
+<span class="annotation">@RestController</span>
+<span class="annotation">@RequestMapping</span>(<span class="string">"/api/v1/payments"</span>)
+<span class="annotation">@Validated</span>
+<span class="keyword">public class</span> <span class="class-name">PaymentController</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">PaymentService</span> paymentService;
+    
+    <span class="keyword">public</span> <span class="method">PaymentController</span>(<span class="class-name">PaymentService</span> paymentService) {
+        <span class="keyword">this</span>.paymentService = paymentService;
+    }
+    
+    <span class="annotation">@PostMapping</span>(<span class="string">"/process"</span>)
+    <span class="keyword">public</span> <span class="class-name">ResponseEntity</span>&lt;<span class="class-name">PaymentResult</span>&gt; <span class="method">processPayment</span>(
+            <span class="annotation">@Valid</span> <span class="annotation">@RequestBody</span> <span class="class-name">PaymentRequest</span> request) {
+        
+        <span class="keyword">try</span> {
+            <span class="class-name">PaymentResult</span> result = paymentService.<span class="method">processPayment</span>(request);
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">ok</span>(result);
+        } <span class="keyword">catch</span> (<span class="class-name">InvalidPaymentException</span> e) {
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">badRequest</span>().<span class="method">build</span>();
+        } <span class="keyword">catch</span> (<span class="class-name">UnsupportedPaymentTypeException</span> e) {
+            <span class="keyword">return</span> <span class="class-name">ResponseEntity</span>.<span class="method">unprocessableEntity</span>().<span class="method">build</span>();
+        }
+    }
+}
+</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Neden-Sonuç İlişkisi</h2>
+            
+            <h3 class="subsection-title">Problem: Tight Coupling ve Skalabilite</h3>
+            <div class="warning-box">
+                <strong>Sorun:</strong> Client kod, somut sınıflara doğrudan bağımlı olduğunda:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li>Yeni ödeme türü eklenmesi client kodda değişiklik gerektirir</li>
+                    <li>Ürün ailesi tutarlılığı garanti edilemez</li>
+                    <li>Test edilebilirlik azalır</li>
+                </ul>
+            </div>
+
+            <h3 class="subsection-title">Çözüm: Abstract Factory ile Decoupling</h3>
+            <div class="highlight-box">
+                <strong>Sonuç:</strong> Abstract Factory kullanımı ile:
+                <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                    <li>Client kod sadece interface'lere bağımlı hale gelir</li>
+                    <li>Yeni ürün ailesi eklenmesi client kodda değişiklik gerektirmez</li>
+                    <li>Ürün ailesi tutarlılığı factory tarafından garanti edilir</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Sağladığı Faydalar</h2>
+            
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">🎯 Single Responsibility</div>
+                    Her factory sadece kendi ürün ailesinden sorumludur. CreditCardPaymentFactory sadece kredi kartı ile ilgili nesneleri üretir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🔒 Open/Closed Principle</div>
+                    Yeni ödeme türleri için extension yaparken mevcut kod değiştirilmez. Yeni factory implementation'ı yeterlidir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🎭 Dependency Inversion</div>
+                    High-level modüller low-level modüllere bağımlı olmaz. PaymentService abstraction'lara bağımlıdır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🔄 Consistency Guarantee</div>
+                    Factory, ürün ailesinin tutarlı olmasını garanti eder. CreditCard factory'den wallet validator çıkmaz.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">🧪 Enhanced Testability</div>
+                    Mock factory'ler oluşturarak unit test yazılabilir. Test senaryoları için fake implementation'lar kullanılabilir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">⚡ Configuration Flexibility</div>
+                    Spring Boot'un dependency injection mekanizması ile runtime'da factory seçimi yapılabilir.
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">İleri Seviye Considerations</h2>
+            
+            <h3 class="subsection-title">Performance Implications</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Factory caching for performance</span>
+<span class="annotation">@Service</span>
+<span class="keyword">public class</span> <span class="class-name">CachedPaymentService</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">LoadingCache</span>&lt;<span class="class-name">PaymentType</span>, <span class="class-name">PaymentProcessorFactory</span>&gt; factoryCache;
+    
+    <span class="keyword">public</span> <span class="method">CachedPaymentService</span>() {
+        <span class="keyword">this</span>.factoryCache = <span class="class-name">Caffeine</span>.<span class="method">newBuilder</span>()
+            .<span class="method">maximumSize</span>(100)
+            .<span class="method">expireAfterAccess</span>(10, <span class="class-name">TimeUnit</span>.MINUTES)
+            .<span class="method">build</span>(<span class="keyword">this</span>::<span class="method">loadFactory</span>);
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Error Handling Strategies</h3>
+            <div class="code-block">
+<pre>
+<span class="comment">// Circuit Breaker pattern integration</span>
+<span class="annotation">@Component</span>
+<span class="keyword">public class</span> <span class="class-name">ResilientPaymentFactory</span> <span class="keyword">implements</span> <span class="class-name">PaymentProcessorFactory</span> {
+    
+    <span class="keyword">private final</span> <span class="class-name">CircuitBreaker</span> circuitBreaker;
+    
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="class-name">PaymentProcessor</span> <span class="method">createPaymentProcessor</span>() {
+        <span class="keyword">return</span> circuitBreaker.<span class="method">executeSupplier</span>(() -> 
+            <span class="keyword">new</span> <span class="class-name">ResilientPaymentProcessor</span>());
+    }
+}
+</pre>
+            </div>
+
+            <h3 class="subsection-title">Monitoring ve Metrics</h3>
+            <div class="highlight-box">
+                <strong>Factory Usage Tracking:</strong> Micrometer ile hangi factory'lerin ne sıklıkla kullanıldığını takip edebilir, performance bottleneck'lerini tespit edebilirsiniz.
+            </div>
+        </div>
+
+        <div class="content-card">
+            <h2 class="section-title">Alternativeler ve Karşılaştırma</h2>
+            
+            <div class="benefit-list">
+                <div class="benefit-item">
+                    <div class="benefit-title">vs Factory Method</div>
+                    Abstract Factory bir ürün ailesi üretir, Factory Method tek ürün üretir. Karmaşık sistemlerde Abstract Factory tercih edilir.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">vs Builder Pattern</div>
+                    Builder tek kompleks nesne oluşturur, Abstract Factory ilişkili nesneler ailesini oluşturur. Use case'e göre seçim yapılır.
+                </div>
+                
+                <div class="benefit-item">
+                    <div class="benefit-title">vs Spring Configuration</div>
+                    @Configuration ile de factory benzeri yapılar oluşturulabilir, ancak Abstract Factory daha esnek ve runtime değişikliklere açıktır.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

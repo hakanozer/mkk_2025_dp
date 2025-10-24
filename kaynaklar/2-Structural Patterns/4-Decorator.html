@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Decorator Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Decorator Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Nesnelere Yeni Sorumluluklar Dinamik Olarak Ekleme</p>
+    </header>
+
+    <div class="content">
+        <h2>Decorator Nedir?</h2>
+        <p><strong>Decorator</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, nesnelere statik olarak alt sınıflandırma (inheritance) yoluyla değil, dinamik olarak sarma (wrapping) yoluyla yeni sorumluluklar eklemektir. Bir nesneyi bir veya daha fazla "dekoratör" nesnesiyle sararak, temel nesnenin davranışını değiştirebilir veya ona yeni işlevsellik katabilirsiniz. Bu, bir nesneyi bir dizi farklı özelliğiyle "süslenmeye" benzetilebilir.</p>
+
+        <p>Desen dört ana bileşenden oluşur:
+        <ul>
+            <li><strong>Component (Bileşen):</strong> Hem temel nesneler hem de dekoratörler için ortak olan arayüzdür. Müşteri (client) kodu, bu arayüz üzerinden etkileşim kurar.</li>
+            <li><strong>Concrete Component (Somut Bileşen):</strong> Dekore edilecek temel nesnedir. <code>Component</code> arayüzünü implemente eder.</li>
+            <li><strong>Decorator (Dekoratör):</strong> Soyut bir dekoratör sınıfıdır. <code>Component</code> arayüzünü implemente eder ve dekore edilecek <code>Component</code> nesnesine bir referans tutar.</li>
+            <li><strong>Concrete Decorator (Somut Dekoratör):</strong> <code>Decorator</code> soyut sınıfını miras alan ve temel nesneye yeni işlevsellik ekleyen sınıftır. Kendi özel davranışını ekler ve çağrıyı sarılı nesneye yönlendirir.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, bir isteği işlerken farklı işlevsellik katmanları eklemek gerekebilir. Örneğin, bir API isteği önce doğrulama (validation) adımlarından, sonra loglama (logging) adımlarından geçebilir ve en son ana iş mantığına ulaşabilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret API'sinde, bir sipariş işleme isteği için farklı adımlar uygulamanız gerekiyor. Bu adımlar, isteğin türüne göre değişebilir:
+        <ul>
+            <li><strong>Temel Sipariş İşleme:</strong> Siparişi veritabanına kaydet.</li>
+            <li><strong>Doğrulama Eklentisi:</strong> Siparişi kaydetmeden önce kullanıcı yetkisini ve sipariş verilerini doğrula.</li>
+            <li><strong>Loglama Eklentisi:</strong> Sipariş işlendikten sonra bir log kaydı oluştur.</li>
+            <li><strong>Özel Fiyatlandırma Eklentisi:</strong> Siparişin fiyatını özel bir indirimle güncelle.</li>
+        </ul></p>
+        
+        <p><strong>Yetersiz Yaklaşım (Alt Sınıflandırma):</strong> Eğer Decorator deseni kullanılmazsa, bu işlevsellikleri alt sınıflar (inheritance) yoluyla eklemeye çalışmak sınıf patlamasına yol açar:</p>
+
+        <div class="code-block">
+            <pre>
+// Her bir kombinasyon için ayrı bir sınıf oluştur
+class ValidatingLoggingOrderProcessor extends OrderProcessor { /* ... */ }
+class ValidatingOrderProcessor extends OrderProcessor { /* ... */ }
+class LoggingOrderProcessor extends OrderProcessor { /* ... */ }
+// ... ve daha fazlası
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, her yeni işlevsellik (dekorasyon) için yeni bir sınıf hiyerarşisi oluşturmanıza neden olur. Bu, sınıf sayısını <code>2^N</code> (N: eklenebilecek özellik sayısı) kat artırır ve kodun bakımını son derece zorlaştırır. Ayrıca, bu sınıflar arasında kod tekrarı kaçınılmaz hale gelir. Bu durum, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ve **Tek Sorumluluk Prensibi (Single Responsibility Principle)**'ni ihlal eder.</p>
+
+        <p><strong>Decorator Çözümü:</strong> Bu sorunu çözmek için, temel sipariş işleme mantığını bir bileşen (component) olarak tanımlayabilir ve doğrulama veya loglama gibi işlevsellikleri bu bileşeni saran (decorating) ayrı sınıflar olarak implemente edebiliriz. Bu sayede, farklı dekorasyonları çalışma zamanında dinamik olarak bir araya getirebiliriz.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm bileşenler için ortak bir <code>OrderProcessor</code> arayüzü (Component) tanımlayın.</li>
+            <li>Temel işlevselliği içeren <code>SimpleOrderProcessor</code> sınıfını (Concrete Component) oluşturun.</li>
+            <li>Tüm dekoratörler için bir <code>OrderProcessorDecorator</code> soyut sınıfı (Decorator) oluşturun. Bu sınıf, <code>OrderProcessor</code> arayüzünü implemente eder ve içindeki dekore edilecek <code>OrderProcessor</code>'a bir referans tutar.</li>
+            <li>Her bir ek işlevsellik (doğrulama, loglama) için <code>OrderProcessorDecorator</code>'ı miras alan somut sınıflar (<code>ValidationDecorator</code>, <code>LoggingDecorator</code>) oluşturun.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Component Arayüzü
+public interface OrderProcessor {
+    void process(OrderRequest request);
+}
+
+// 2. Concrete Component
+@Component
+public class SimpleOrderProcessor implements OrderProcessor {
+    @Override
+    public void process(OrderRequest request) {
+        System.out.println("Temel sipariş veritabanına kaydediliyor.");
+    }
+}
+
+// 3. Soyut Decorator
+public abstract class OrderProcessorDecorator implements OrderProcessor {
+    protected final OrderProcessor decoratedProcessor;
+    
+    public OrderProcessorDecorator(OrderProcessor processor) {
+        this.decoratedProcessor = processor;
+    }
+    
+    @Override
+    public void process(OrderRequest request) {
+        decoratedProcessor.process(request);
+    }
+}
+
+// 4. Concrete Decorator
+@Component
+public class ValidationDecorator extends OrderProcessorDecorator {
+    public ValidationDecorator(OrderProcessor processor) {
+        super(processor);
+    }
+    
+    @Override
+    public void process(OrderRequest request) {
+        System.out.println("Sipariş doğrulaması yapılıyor...");
+        if (request.isValid()) {
+            super.process(request);
+        } else {
+            System.out.println("Doğrulama hatası! Sipariş işlenemedi.");
+        }
+    }
+}
+
+// 4. Concrete Decorator
+@Component
+public class LoggingDecorator extends OrderProcessorDecorator {
+    public LoggingDecorator(OrderProcessor processor) {
+        super(processor);
+    }
+    
+    @Override
+    public void process(OrderRequest request) {
+        System.out.println("Sipariş işleme başlangıç logu kaydediliyor.");
+        super.process(request);
+        System.out.println("Sipariş işleme bitiş logu kaydediliyor.");
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>API Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+    
+    @Autowired
+    private SimpleOrderProcessor simpleProcessor;
+    
+    @PostMapping("/process")
+    public ResponseEntity&lt;?&gt; processOrder(@RequestBody OrderRequest request) {
+        // Dekorasyonları dinamik olarak birleştirme
+        OrderProcessor processor = new LoggingDecorator(new ValidationDecorator(simpleProcessor));
+        
+        processor.process(request);
+        
+        return ResponseEntity.ok("Sipariş işlendi.");
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Bir nesnenin davranışını, alt sınıflandırma yapmadan dinamik olarak değiştirebilirsiniz. Yeni bir özellik (örneğin, güvenlik kontrolü) eklemek istediğinizde, mevcut sınıfları değiştirmeye gerek kalmaz. Sadece yeni bir dekoratör sınıfı oluşturmanız yeterlidir. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Sorumlulukların Ayrılması:</strong> Her bir dekoratör, tek bir sorumluluğu üstlenir (örneğin, sadece loglama veya sadece doğrulama). Ana bileşen ise sadece temel iş mantığından sorumludur. Bu, **Single Responsibility Principle (Tek Sorumluluk Prensibi)**'ne uyum sağlar ve kodun daha okunur olmasını sağlar.
+            </li>
+            <li>
+                <strong>Sınıf Patlamasını Önleme:</strong> Sonsuz sayıda alt sınıf kombinasyonu oluşturmak yerine, dekoratörleri dinamik olarak bir araya getirerek farklı işlevsellik kombinasyonları elde edebilirsiniz.
+            </li>
+            <li>
+                <strong>Gevşek Bağlılık (Loose Coupling):</strong> Hem istemci kodu hem de dekoratörler, sadece ortak arayüzü (<code>OrderProcessor</code>) bilir. Birbirlerinin somut implementasyon detaylarını bilmek zorunda değildirler.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

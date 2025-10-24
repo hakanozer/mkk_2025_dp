@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Flyweight Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Flyweight Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Bellek Kullanımını Optimize Etme</p>
+    </header>
+
+    <div class="content">
+        <h2>Flyweight Nedir?</h2>
+        <p><strong>Flyweight</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>yapısal (structural)</strong> tasarım desenidir. Bu desenin temel amacı, çok sayıda nesne oluşturulması gerektiğinde bellek kullanımını azaltmaktır. Bu, nesnelerin ortak durumlarını (intrinsic state) paylaşarak gerçekleştirilir. Ortak durum, birden fazla nesne tarafından paylaşılabilecek, bağımsız ve sabit (değişmeyen) verilerdir. Her nesneye özgü olan, dışsal (extrinsic state) veriler ise istemci tarafından Flyweight nesnesine gönderilir.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Flyweight (Paylaşılan Nesne):</strong> Ortak durumu içeren ve birden fazla istemci tarafından paylaşılabilen nesnelerdir. Bu nesneler değişmez (immutable) olmalıdır.</li>
+            <li><strong>Flyweight Factory (Fabrika):</strong> Ortak Flyweight nesnelerini yöneten ve istemciye doğru nesneyi döndüren sınıftır. İstekte bulunan Flyweight nesnesi daha önce oluşturulmuşsa, mevcut nesneyi döndürür; aksi takdirde yeni bir nesne oluşturur.</li>
+            <li><strong>Client (İstemci):</strong> Flyweight nesnelerini kullanan sınıftır. Dışsal durumu yönetir ve Flyweight nesnelerine bu veriyi geçirir.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, çok sayıda veri nesnesi veya durum nesnesi oluşturmanız gerektiğinde bellek sorunları ortaya çıkabilir. Özellikle büyük ölçekli ve yüksek trafikli sistemlerde, her istek için yeni nesneler oluşturmak ciddi performans düşüşlerine neden olabilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir haritalama API'si geliştirdiğinizi düşünün. Bu API, harita üzerindeki milyonlarca şehri temsil eden nesneleri döndürüyor. Şehir nesnelerinin bazı özellikleri (koordinatlar, popülasyon) her şehir için farklıdır (dışsal durum), ancak bazı özellikleri (ülke kodu, bölge adı) pek çok şehir için aynıdır (ortak durum). Yeni bir şehir nesnesi her istendiğinde tüm verileriyle birlikte oluşturmak bellek kullanımını hızla artırır.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Her Şey Yeni Nesne):</strong> Eğer Flyweight deseni kullanılmazsa, her şehir için tüm verileri içeren yeni bir nesne oluşturmak zorunda kalırız:</p>
+
+        <div class="code-block">
+            <pre>
+public class City {
+    private final String countryCode;
+    private final String regionName;
+    private final double latitude;
+    private final double longitude;
+    // ... constructor, getters
+}
+
+@Service
+public class CityService {
+    public City getCity(String cityCode) {
+        // Her istek için veritabanından tüm verilerle yeni bir City nesnesi oluşturulur
+        return new City("US", "California", 34.05, -118.24);
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşımda, aynı ülke veya bölgeye ait her şehir için <code>countryCode</code> ve <code>regionName</code> gibi aynı veriler tekrar tekrar bellekte saklanır. Yüksek trafikli bir sistemde, bu gereksiz nesne oluşturma ve depolama işlemleri bellek kullanımını şişirir ve çöp toplama (garbage collection) sürelerini uzatarak uygulamanın performansını ciddi şekilde düşürür.</p>
+
+        <p><strong>Flyweight Çözümü:</strong> Bu sorunu çözmek için, ortak olan verileri (<code>countryCode</code>, <code>regionName</code>) paylaşılan, değişmez bir Flyweight nesnesi içinde tutabiliriz. Şehre özgü değişen verileri (<code>latitude</code>, <code>longitude</code>) ise istemciye özgü bir şekilde yönetiriz. Bu, bir Flyweight Factory (Fabrika) kullanarak kolayca yapılabilir.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Ortak verileri içerecek bir <code>CityFlyweight</code> sınıfı (Flyweight) oluşturun. Bu sınıf değişmez (immutable) olmalıdır.</li>
+            <li>Bu Flyweight nesnelerini yönetmek için bir <code>CityFlyweightFactory</code> sınıfı (Fabrika) oluşturun. Bu fabrika, bir harita (Map) kullanarak daha önce oluşturulmuş Flyweight nesnelerini saklar ve aynı veriye sahip yeni bir nesne istendiğinde mevcut nesneyi döndürür.</li>
+            <li>Uygulamanızda, istemcinin kullanacağı ana sınıf, fabrika aracılığıyla paylaşılan nesneyi alır ve dışsal verilerle birleştirerek istemciye sunar.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Flyweight (Paylaşılan Nesne)
+public final class CityFlyweight {
+    private final String countryCode;
+    private final String regionName;
+    
+    public CityFlyweight(String countryCode, String regionName) {
+        this.countryCode = countryCode;
+        this.regionName = regionName;
+    }
+    
+    // ... getter metotları
+}
+
+// 2. Flyweight Factory (Fabrika)
+@Component
+public class CityFlyweightFactory {
+    private static final Map&lt;String, CityFlyweight&gt; flyweights = new ConcurrentHashMap&lt;&gt;();
+    
+    public CityFlyweight getFlyweight(String countryCode, String regionName) {
+        String key = countryCode + "-" + regionName;
+        return flyweights.computeIfAbsent(key, k -> new CityFlyweight(countryCode, regionName));
+    }
+}
+
+// 3. İstemci (Client) ve Dışsal Veri Modeli
+public class CityLocation {
+    private final CityFlyweight sharedState; // Ortak durum
+    private final double latitude;
+    private final double longitude;
+    
+    public CityLocation(CityFlyweight sharedState, double latitude, double longitude) {
+        this.sharedState = sharedState;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+    // ... getter metotları
+}
+
+// 4. API Kontrolcüsü
+@RestController
+@RequestMapping("/maps")
+public class MapController {
+    private final CityFlyweightFactory flyweightFactory;
+    
+    @Autowired
+    public MapController(CityFlyweightFactory flyweightFactory) {
+        this.flyweightFactory = flyweightFactory;
+    }
+    
+    @GetMapping("/city/{countryCode}/{regionName}")
+    public ResponseEntity&lt;CityLocation&gt; getCityLocation(
+        @PathVariable String countryCode, 
+        @PathVariable String regionName) {
+        
+        // Ortak Flyweight nesnesini fabrikadan al
+        CityFlyweight sharedState = flyweightFactory.getFlyweight(countryCode, regionName);
+        
+        // Dışsal verileri veritabanından çek (veya başka bir kaynaktan)
+        double latitude = 34.05;
+        double longitude = -118.24;
+        
+        CityLocation city = new CityLocation(sharedState, latitude, longitude);
+        return ResponseEntity.ok(city);
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Bellek Kullanımını Azaltma:</strong> En büyük faydası, özellikle çok sayıda benzer nesne kullanıldığında bellek kullanımını önemli ölçüde azaltmasıdır. Bu, yüksek trafikli REST API'lerinde uygulama performansını artırır.
+            </li>
+            <li>
+                <strong>Performans Artışı:</strong> Nesne oluşturma maliyeti yüksek bir işlemdir. Flyweight deseni, aynı ortak duruma sahip nesneler için tekrar tekrar nesne oluşturma yükünü ortadan kaldırır. Bu, uygulamanın daha hızlı yanıt vermesini sağlar.
+            </li>
+            <li>
+                <strong>Sorumlulukların Ayrılması:</strong> Ortak, değişmez veriler (Flyweight) ile her nesneye özgü, değişen veriler (dışsal durum) birbirinden net bir şekilde ayrılmıştır. Bu, kodun daha organize ve yönetilebilir olmasını sağlar.
+            </li>
+            <li>
+                <strong>Ölçeklenebilirlik:</strong> Sistem, gereksiz bellek yükü olmadan çok daha fazla istemciye hizmet verebilir, bu da uygulamanın daha ölçeklenebilir olmasını sağlar.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Command Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Command Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için İşlemleri Nesneleştirme ve Geciktirme</p>
+    </header>
+
+    <div class="content">
+        <h2>Command Nedir?</h2>
+        <p><strong>Command</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desen, bir isteği, tüm bilgileri içeren bağımsız bir nesneye dönüştürür. Bu, isteğin parametreleştirilmesini, sıraya alınmasını veya farklı nesnelere iletilmesini sağlar. En basit ifadeyle, bir metot çağrısını nesneleştirerek, işlemin kendisini (bir Command nesnesi) çağıran istemciden (Invoker) ve bu işlemi gerçekleştiren nesneden (Receiver) ayırır.</p>
+
+        <p>Desen, temel olarak üç bileşenden oluşur:
+        <ul>
+            <li><strong>Command (Komut):</strong> Bir eylemi gerçekleştirecek metodu (genellikle <code>execute()</code>) tanımlayan bir arayüz.</li>
+            <li><strong>ConcreteCommand (Somut Komut):</strong> <code>Command</code> arayüzünü uygulayan ve bir alıcı (Receiver) nesnesine referans tutan somut sınıflar. Bu sınıflar, <code>execute()</code> metodunda alıcının ilgili metodunu çağırır.</li>
+            <li><strong>Invoker (Çağıran):</strong> Komutu tutan ve <code>execute()</code> metodunu çağıran nesne. Bu nesne, hangi komutun çağrılacağını bilmek zorunda değildir, sadece komut arayüzü ile çalışır.</li>
+            <li><strong>Receiver (Alıcı):</strong> Asıl iş mantığını içeren ve komutun üzerinde işlem yaptığı nesne.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API'de, bir isteğin hemen yerine getirilmesi yerine, asenkron olarak işlenmesi, bir işlem kuyruğuna alınması veya geri alınabilir (undoable) işlemler olarak tasarlanması gereken senaryolarla karşılaşırız. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir içerik yönetim sistemi API'si geliştirdiğinizi düşünün. Bu API üzerinden kullanıcılar makale yayınlayabilir, taslak olarak kaydedebilir veya bir makaleyi yayından kaldırabilir. Her işlem, veritabanı işlemleri, bildirim gönderme veya dosya sistemi operasyonları gibi farklı altyapı servislerini içeriyor.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Sıkı Bağlı Kod):</strong> Eğer Command deseni kullanılmazsa, kontrolcü sınıfı direkt olarak farklı servislerin metotlarını çağırır. Bu durum, kontrolcünün birden fazla servise sıkıca bağlanmasına neden olur:</p>
+
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/api/articles")
+public class ArticleController {
+    private final ArticleService articleService;
+    private final NotificationService notificationService;
+    private final FileService fileService;
+
+    // constructor injection...
+
+    @PostMapping("/publish/{id}")
+    public ResponseEntity<?> publishArticle(@PathVariable Long id) {
+        articleService.publish(id);
+        notificationService.sendNotification("Article published: " + id);
+        return ResponseEntity.ok("Article published.");
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşımda, <code>ArticleController</code> sınıfı çok fazla sorumluluk üstlenir (<strong>Single Responsibility Principle'a aykırı</strong>). Her yeni işlem (örneğin, makaleyi silme, arşivleme) için kontrolcüyü değiştirmek gerekir. Ayrıca, işlemlerin sırasını veya asenkronluğunu yönetmek oldukça zorlaşır. Örneğin, makale yayınlama işlemini bir işlem kuyruğuna almak isteseydik, bu kodun tamamını yeniden yazmak zorunda kalırdık.</p>
+
+        <p><strong>Command Çözümü:</strong> Bu sorunu çözmek için, her bir işlemi (yayınlama, taslak kaydetme, vb.) birer komut nesnesi olarak tasarlayabiliriz. Böylece, kontrolcü sadece bir komut nesnesi oluşturur ve bu komutu bir çağırana (invoker) iletir. Çağıran, bu komutu istediği zaman (örneğin, hemen veya bir işlem kuyruğundan) çalıştırabilir.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Tüm komutlar için ortak bir arayüz (<code>Command</code>) tanımlayın. Bu arayüz, genellikle <code>execute()</code> metodunu içerir.</li>
+            <li>Her bir işlem için (<code>PublishArticleCommand</code>, <code>SaveAsDraftCommand</code>) bu arayüzü implemente eden somut komut sınıfları oluşturun. Bu sınıflar, işlemi gerçekleştirecek alıcı (Receiver) nesnelerine (<code>ArticleService</code>, <code>NotificationService</code>) referans tutar.</li>
+            <li>Bir çağırıcı (Invoker) sınıfı oluşturun. Bu sınıf, bir komutu kabul eder ve <code>execute()</code> metodunu çağırır.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Command Arayüzü
+public interface Command {
+    void execute();
+}
+
+// 2. ConcreteCommand
+public class PublishArticleCommand implements Command {
+    private final ArticleService articleService;
+    private final NotificationService notificationService;
+    private final Long articleId;
+
+    public PublishArticleCommand(ArticleService articleService, NotificationService notificationService, Long articleId) {
+        this.articleService = articleService;
+        this.notificationService = notificationService;
+        this.articleId = articleId;
+    }
+
+    @Override
+    public void execute() {
+        articleService.publish(articleId);
+        notificationService.sendNotification("Article published: " + articleId);
+    }
+}
+
+// 3. Invoker (Bu bir servis veya bileşen olabilir)
+@Service
+public class CommandProcessor {
+    public void processCommand(Command command) {
+        command.execute();
+    }
+
+    // Ya da asenkron bir kuyruk yapısı kullanılabilir
+    @Async
+    public void scheduleCommand(Command command) {
+        // Komutu bir Message Queue'ya (RabbitMQ, Kafka) gönderme mantığı
+        // ...
+        command.execute(); // Örnek için hemen çalıştırıldı
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Kontrolcü Kullanımı:</strong></p>
+        
+        <div class="code-block">
+            <pre>
+@RestController
+@RequestMapping("/articles")
+public class ArticleController {
+    private final CommandProcessor commandProcessor;
+    private final ArticleService articleService;
+    private final NotificationService notificationService;
+
+    // constructor injection...
+
+    @PostMapping("/publish/{id}")
+    public ResponseEntity<?> publishArticle(@PathVariable Long id) {
+        Command publishCommand = new PublishArticleCommand(articleService, notificationService, id);
+        commandProcessor.processCommand(publishCommand);
+        return ResponseEntity.accepted().body("Publish command is being processed.");
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>İşlemlerin Ayırımı ve Bağımsızlığı:</strong> <code>Command</code> deseni, işlemi gerçekleştiren nesneyi (Receiver) ve bu işlemi başlatan nesneyi (Invoker) birbirinden ayırır. Bu, kontrolcünün birden fazla servise olan sıkı bağımlılığını ortadan kaldırır ve **gevşek bağlılık (Loose Coupling)** sağlar.
+            </li>
+            <li>
+                <strong>İşlem Kuyruğu ve Asenkronluk:</strong> Komutlar nesneleştirildiği için, bir API isteği geldiğinde komut nesnesini oluşturup bir mesaj kuyruğuna (Message Queue) gönderebilirsiniz. Bu, **asenkron işlem** yapmanıza olanak tanır ve istemcinin işlemi beklemesine gerek kalmaz. Kontrolcü, işlemi hemen başlatmak yerine sadece komutu kabul ettiğini belirten bir yanıt dönebilir (HTTP 202 Accepted).
+            </li>
+            <li>
+                <strong>Geri Alma (Undo) ve Yenileme (Redo) Yeteneği:</strong> Komut nesneleri durumlarını koruduğu için, her <code>Command</code> sınıfına bir de <code>undo()</code> metodu ekleyerek işlemleri geri alabilme yeteneği kazandırabilirsiniz. Bir komutlar listesi tutarak, geri alma ve yeniden yapma fonksiyonelliğini kolayca implemente edebilirsiniz.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir işlem türü (örneğin, <code>ArchiveArticleCommand</code>) eklemek istediğinizde, mevcut kodda (<code>CommandProcessor</code> veya <code>ArticleController</code>) herhangi bir değişiklik yapmanıza gerek kalmaz. Sadece yeni komut sınıfını oluşturur ve istemcinin bu komutu çağırmasını sağlarsınız. Bu, **Open-Closed Principle'a** uyumu destekler.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>

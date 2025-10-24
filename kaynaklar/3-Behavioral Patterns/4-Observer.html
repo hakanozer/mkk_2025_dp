@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Boot ve REST API ile Observer Tasarım Deseni</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #005f99;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --light-text-color: #666;
+            --bg-color: #fff;
+            --card-bg-color: #fafafa;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-weight: 700;
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: var(--light-text-color);
+            font-size: 1.1em;
+        }
+
+        .content h2 {
+            color: var(--primary-color);
+            font-weight: 700;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            font-size: 1.8em;
+        }
+
+        .content h3 {
+            color: var(--text-color);
+            font-weight: 700;
+            margin-top: 30px;
+            font-size: 1.4em;
+        }
+
+        .content p {
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background-color: var(--card-bg-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95em;
+        }
+
+        .benefit-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .benefit-list li {
+            background: var(--card-bg-color);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+            position: relative;
+        }
+
+        .benefit-list li strong {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .content h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Spring Boot ve REST API ile Observer Tasarım Deseni</h1>
+        <p>Gelişmiş Yazılımcılar için Nesneler Arası Otomatik Senkronizasyon ve Bildirimler</p>
+    </header>
+
+    <div class="content">
+        <h2>Observer Nedir?</h2>
+        <p><strong>Observer</strong>, GoF (Gang of Four) tarafından tanımlanmış bir <strong>davranışsal (behavioral)</strong> tasarım desenidir. Bu desenin temel amacı, bir nesne (subject) durumunu değiştirdiğinde, ona bağımlı olan tüm nesnelerin (observers) otomatik olarak bilgilendirilmesini sağlamaktır. Bu, nesneler arası sıkı bağımlılıkları azaltarak, sistemin daha esnek ve yönetilebilir olmasını sağlar.</p>
+
+        <p>Desen iki ana bileşenden oluşur:
+        <ul>
+            <li><strong>Subject (Konu/Özne):</strong> Durumunu değiştiren ve bu değişiklikleri gözlemcilere bildiren nesnedir. Gözlemcileri kaydetmek, silmek ve onlara bildirim göndermek için metotları (<code>attach()</code>, <code>detach()</code>, <code>notify()</code>) vardır.</li>
+            <li><strong>Observer (Gözlemci):</strong> Konu nesnesindeki değişiklikler hakkında bilgilendirilmesi gereken nesnelerdir. Güncellemeyi almak için bir <code>update()</code> metodu tanımlar.</li>
+        </ul></p>
+
+        ---
+
+        <h2>Neden ve Ne Zaman Kullanılmalı? (Neden-Sonuç İlişkisi)</h2>
+        <p>Bir REST API bağlamında, bir işlem (örneğin, sipariş oluşturma) tamamlandığında, bu olaya bağlı birden fazla farklı işlemin (örneğin, e-posta gönderme, stok güncelleme, loglama) tetiklenmesi gerekebilir. Bu durumun neden-sonuç ilişkisini aşağıdaki senaryo üzerinden inceleyelim:</p>
+        
+        <p><strong>Senaryo:</strong> Bir e-ticaret API'sinde yeni bir siparişin oluşturulması, aynı anda birden fazla iş sürecini tetiklemelidir: müşteriye sipariş onayı e-postası gönderilmeli, siparişin stok miktarı güncellenmeli ve bu işlem bir raporlama servisine loglanmalıdır.</p>
+        
+        <p><strong>Yetersiz Yaklaşım (Sıkı Bağlı Kod):</strong> Eğer Observer deseni kullanılmazsa, sipariş servisi (Subject), tüm bu bağımlı servisleri (Observers) doğrudan çağırmak zorunda kalır:</p>
+
+        <div class="code-block">
+            <pre>
+@Service
+public class OrderService {
+    private final EmailService emailService;
+    private final StockService stockService;
+    private final ReportingService reportingService;
+
+    // constructor injection...
+
+    public Order createNewOrder(OrderRequest request) {
+        Order order = saveToDatabase(request);
+        
+        // Tüm bağımlı servisleri manuel olarak çağır
+        emailService.sendOrderConfirmation(order);
+        stockService.deductStock(order.getProductId(), order.getQuantity());
+        reportingService.logNewOrder(order);
+        
+        return order;
+    }
+}
+            </pre>
+        </div>
+
+        <p><strong>Sonuç:</strong> Bu yaklaşım, **sıkı bağlılık (tight coupling)** yaratır. <code>OrderService</code>, her bir gözlemcinin (<code>EmailService</code>, <code>StockService</code>, <code>ReportingService</code>) varlığını ve metodlarını bilmek zorundadır. Yeni bir iş süreci (örneğin, SMS bildirimi gönderme) eklemek istediğinizde, <code>OrderService</code> sınıfını değiştirmek zorunda kalırsınız. Bu, **Open-Closed Principle (Açık/Kapalı Prensibi)**'ni ihlal eder ve kodun bakımını zorlaştırır. Ayrıca, sipariş oluşturma işleminin karmaşıklığı artar, çünkü tüm bağımlılıkları tek bir yerde yönetmek gerekir.</p>
+
+        <p><strong>Observer Çözümü:</strong> Bu sorunu çözmek için, sipariş servisini (Subject) ve diğer servisleri (Observers) birbirinden ayırabiliriz. Sipariş servisi, sadece bir "yeni sipariş oluşturuldu" olayı yayar ve bu olaya kimin abone olduğunu bilmez. Abone olan servisler (gözlemciler) ise bu olayı dinler ve kendi iş mantıklarını tetikler.</p>
+        
+        <p><strong>Spring'de Uygulama:</strong> Spring Framework, **Olay Odaklı Programlama (Event-Driven Programming)** yapısı ile Observer desenini doğal olarak destekler. <code>ApplicationEventPublisher</code>, konuyu (subject) temsil ederken, <code>@EventListener</code> anotasyonuna sahip metotlar gözlemcileri (observers) temsil eder.</p>
+        
+        <p><strong>Adımlar:</strong></p>
+        <ol>
+            <li>Olayı temsil eden bir sınıf oluşturun (<code>NewOrderCreatedEvent</code>).</li>
+            <li>Konu nesnesinde (<code>OrderService</code>), olayı yayınlamak için <code>ApplicationEventPublisher</code> kullanın.</li>
+            <li>Gözlemci servislerinde (<code>EmailService</code>, <code>StockService</code>), ilgili olayı dinlemek için <code>@EventListener</code> anotasyonunu kullanın.</li>
+        </ol>
+
+        <div class="code-block">
+            <pre>
+// 1. Olay Sınıfı
+public class NewOrderCreatedEvent extends ApplicationEvent {
+    private final Order order;
+    public NewOrderCreatedEvent(Object source, Order order) {
+        super(source);
+        this.order = order;
+    }
+    public Order getOrder() { return order; }
+}
+
+// 2. Konu/Özne (Subject)
+@Service
+public class OrderService {
+    private final ApplicationEventPublisher eventPublisher;
+    
+    @Autowired
+    public OrderService(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    public Order createNewOrder(OrderRequest request) {
+        Order order = saveToDatabase(request);
+        // Olayı yayınla, kimin dinlediğiyle ilgilenme
+        eventPublisher.publishEvent(new NewOrderCreatedEvent(this, order));
+        return order;
+    }
+}
+
+// 3. Gözlemciler (Observers)
+@Service
+public class EmailService {
+    @EventListener
+    public void handleNewOrderCreated(NewOrderCreatedEvent event) {
+        System.out.println("Sipariş onayı e-postası gönderiliyor: " + event.getOrder().getId());
+    }
+}
+
+@Service
+public class StockService {
+    @EventListener
+    public void handleNewOrderCreated(NewOrderCreatedEvent event) {
+        System.out.println("Sipariş için stok düşürülüyor: " + event.getOrder().getProductId());
+    }
+}
+            </pre>
+        </div>
+
+        ---
+
+        <h2>Kullanılmasının Sağlayacağı Faydalar</h2>
+        <ul class="benefit-list">
+            <li>
+                <strong>Gevşek Bağlılık (Loose Coupling):</strong> Konu (<code>OrderService</code>) ve gözlemciler (<code>EmailService</code>, <code>StockService</code>) birbirinden tamamen bağımsız hale gelir. <code>OrderService</code>, diğer servislerin varlığını veya onlara nasıl bildirim göndereceğini bilmez. Sadece bir olay yayımlar.
+            </li>
+            <li>
+                <strong>Esneklik ve Genişletilebilirlik:</strong> Yeni bir iş süreci (örneğin, SMS bildirimi) eklemek istediğinizde, mevcut <code>OrderService</code> sınıfını değiştirmeye gerek yoktur. Sadece yeni bir servis (<code>SmsService</code>) oluşturup, <code>@EventListener</code> anotasyonu ile <code>NewOrderCreatedEvent</code>'e abone olmanız yeterlidir. Bu, **Open-Closed Principle'a** mükemmel bir uyum sağlar.
+            </li>
+            <li>
+                <strong>Tek Sorumluluk Prensibi (Single Responsibility Principle):</strong> Her servis kendi iş mantığından sorumludur. <code>OrderService</code> sadece siparişin oluşturulmasından sorumludur. Bildirim gönderme veya stok yönetimi gibi ikincil işlemlerden haberdar olması gerekmez.
+            </li>
+            <li>
+                <strong>Dağıtık ve Asenkron Mimari:</strong> Spring'in olay mekanizması, varsayılan olarak senkronize çalışsa da, bu mekanizma kolayca asenkron hale getirilebilir (<code>@Async</code> anotasyonu ile). Bu sayede, bir işlem tamamlandığında tetiklenecek diğer işlemlerin ana iş parçaçığının performansını etkilemesinin önüne geçilir.
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
